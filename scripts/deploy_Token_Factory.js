@@ -1,5 +1,7 @@
 const { ethers } = require("hardhat");
 
+module.exports = {ethers};
+
 async function deploytokenfactory() {
   /*
   A ContractFactory in ethers.js is an abstraction used to deploy new smart contracts,

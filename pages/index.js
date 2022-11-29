@@ -5,12 +5,21 @@ import { providers, Contract } from "ethers";
 import { useEffect, useRef, useState } from "react";
 import { VOTING_CONTRACT_ADDRESS } from "../constants";
 import { MEMBERSHIP_CONTRACT_ADDRESS } from "../constants";
-import {abi as abi_Token_Factory} from "../artifacts/contracts/IToken_Factory.sol/IMembership_Abstraction.json"
-import {abi as abi_quadratic_voting} from "../artifacts/contracts/QuadraticVoting_Simple.sol/QuadraticVoting_Simple.json"
-//import { ethers } from "ethers";
+import {abi as abi_Token_Factory } from "../artifacts/contracts/Token_Factory.sol/Token_Factory.json";
+import {abi as abi_quadratic_voting} from "../artifacts/contracts/QuadraticVoting_Simple.sol/QuadraticVoting_Simple.json";
+//import '@nomiclabs/hardhat-ethers';
+import { ethers } from "ethers";
 //import { run } from "node:test";
 //import {deployquadraticvoting} from "../scripts/deploy_Quadratic_Voting"
 //import {deploytokenfactory} from "../scripts/deploy_Token_Factory"
+import {bytecode as bytecode_Token_Factory} from "../artifacts/contracts/Token_Factory.sol/Token_Factory.json";
+import {bytecode as bytecode_quadratic_voting} from "../artifacts/contracts/QuadraticVoting_Simple.sol/QuadraticVoting_Simple.json";
+//import { ContractFactory } from 'ethers'
+//const ethers = require('ethers');
+//const fs = require('fs');
+//import {ethers} from "../scripts/deploy_Token_Factory"
+
+//const { ethers } = require("hardhat");
  
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
@@ -29,6 +38,8 @@ export default function Home() {
   let  Membership_module = "Token Factory";
   let  Voting_modules  = ["one to one voting", "Qudratic voting"];
   let  Voting_module = "Qudratic voting";
+
+
 
 
   /**
@@ -70,11 +81,12 @@ export default function Home() {
     try {
       //SetMembershipOption("Membership_modules");
       // We need a Signer here since this is a 'write' transaction.
+      const provider = await getProviderOrSigner();
       const signer = await getProviderOrSigner(true);
       // Create a new instance of the Contract with a Signer, which allows
       // update methods
 
-      //const { ethers } = require("../hardhat");
+
       //require("dotenv").config({ path: "../.env" });
       //const { TOKEN_FACTORY_CONTRACT_ADDRESS } = require("../constants/index_membership.js");
       //SetMembershipOption("Non_Member");
@@ -82,92 +94,62 @@ export default function Home() {
       //if(Membership_module == "Token Factory"){
         //await run(npx hardhat run scripts/deploy.js --network goerli);
         //let val = deploytokenfactory();
+        //const provider = ethers.getDefaultProvider();
+        //let httpProvider = new ethers.providers.JsonRpcProvider();
 
-        const Token_Factory_Contract = await ethers.getContractFactory("Token_Factory");
-        SetMembershipOption("Non_Member");
+        //let url = "https://goerli.infura.io/v3/a220f85f3fcd40eea9883dfcb4aa6236";
+        //let customHttpProvider = new ethers.providers.InfuraProvider(url);
+        //const provider = new ethers.providers.JsonRpcProvider('https://long-tame-pallet.ethereum-goerli.discover.quiknode.pro/8faecb4ee1439b89a204628838536c5d85079c31/');
+        //const provider = new ethers.providers.InfuraProvider('https://goerli.infura.io/v3/a220f85f3fcd40eea9883dfcb4aa6236');
+        //const provider = new ethers.providers.JsonRpcProvider();
+        //let provider = new ethers.getDefaultProvider();
+
+        let wallet = new ethers.Wallet("0x07b35804736c3a8229a5883574637e3dad174838d67f633b88f69e2b7e0b1d8d", provider);
+
+        //SetMembershipOption("wallet");
+        const Token_Factory_Contract = new ethers.ContractFactory(abi_Token_Factory,bytecode_Token_Factory,wallet);
+        const Quadratic_Voting_Contract = new ethers.ContractFactory(abi_quadratic_voting,bytecode_quadratic_voting,wallet);
+
         const deployed_Token_Factory_Contract = await Token_Factory_Contract.deploy(10000000,"Test_Token_Factory",1,"TTF");
         await deployed_Token_Factory_Contract.deployed();
         console.log("Token_Factory Contract Address:", deployed_Token_Factory_Contract.address);
-        
+ 
         SetMembershipOption(deployed_Token_Factory_Contract.address);
+
+        const deployed_Quadratic_Voting_Contract = await Quadratic_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
+        await deployed_Quadratic_Voting_Contract.deployed();
+        SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
+        console.log("Qudratic voting Contract Address:", deployed_Quadratic_Voting_Contract.address);
       //}
       if (Voting_module == "Qudratic voting"){
 
       }
       
       const MembershipContract = new Contract(
-        MEMBERSHIP_CONTRACT_ADDRESS,
+        deployed_Quadratic_Voting_Contract.address,
         abi_Token_Factory,
         signer
       );
       const VotingContract = new Contract(
-        VOTING_CONTRACT_ADDRESS,
+        deployed_Token_Factory_Contract.address,
         abi_quadratic_voting,
         signer
       );  
       // call the addAddressToWhitelist from the contract
-      const tx = await VotingContract.addAddressToWhitelist();
+      ////const tx = await VotingContract.addAddressToWhitelist();
       setLoading(true);
       // wait for the transaction to get mined
       await tx.wait();
       setLoading(false);
       // get the updated number of addresses in the whitelist
-      await getNumberOfWhitelisted();
-      setJoinedWhitelist(true);
+      ////await getNumberOfWhitelisted();
+      ////setJoinedWhitelist(true);
     } catch (err) {
       console.error(err);
     }
   };
 
-  /**
-   * getNumberOfWhitelisted:  gets the number of whitelisted addresses
-   */
-  const getNumberOfWhitelisted = async () => {
-    try {
-      // Get the provider from web3Modal, which in our case is MetaMask
-      // No need for the Signer here, as we are only reading state from the blockchain
-      const provider = await getProviderOrSigner();
-      // We connect to the Contract using a Provider, so we will only
-      // have read-only access to the Contract
-      const whitelistContract = new Contract(
-        VOTING_CONTRACT_ADDRESS,
-        abi_Token_Factory,
-        provider
-      );
-      // call the numAddressesWhitelisted from the contract
-      const _numberOfWhitelisted =
-        await whitelistContract.numAddressesWhitelisted();
-      setNumberOfWhitelisted(_numberOfWhitelisted);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  /**
-   * checkIfAddressInWhitelist: Checks if the address is in whitelist
-   */
-  const checkIfAddressInWhitelist = async () => {
-    try {
-      // We will need the signer later to get the user's address
-      // Even though it is a read transaction, since Signers are just special kinds of Providers,
-      // We can use it in it's place
-      const signer = await getProviderOrSigner(true);
-      const whitelistContract = new Contract(
-        VOTING_CONTRACT_ADDRESS,
-        abi_Token_Factory,
-        signer
-      );
-      // Get the address associated to the signer which is connected to  MetaMask
-      const address = await signer.getAddress();
-      // call the whitelistedAddresses from the contract
-      const _joinedWhitelist = await whitelistContract.whitelistedAddresses(
-        address
-      );
-      setJoinedWhitelist(_joinedWhitelist);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  
 
   /*
     connectWallet: Connects the MetaMask wallet
@@ -179,8 +161,8 @@ export default function Home() {
       await getProviderOrSigner();
       setWalletConnected(true);
 
-      checkIfAddressInWhitelist();
-      getNumberOfWhitelisted();
+      //checkIfAddressInWhitelist();
+      //getNumberOfWhitelisted();
     } catch (err) {
       console.error(err);
     }
@@ -195,7 +177,7 @@ export default function Home() {
         return <button className={styles.button}>Loading...</button>;
       } else {
         return (
-          <button onClick={deploycontracts} className={styles.button}>
+          <button onClick={ deploycontracts} className={styles.button}>
             Join the Whitelist
           </button>
         );
