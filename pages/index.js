@@ -33,6 +33,20 @@ export default function Home() {
   // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
   const web3ModalRef = useRef();
 
+  const [Token_Name,set_Token_Name]=useState("No Name");
+
+  function update_Token_Name(text) {
+    set_Token_Name(text);
+  }
+
+  const [Total_Supply,set_Total_Supply]=useState(100);
+
+  function update_Total_Supply(text) {
+    set_Total_Supply(text);
+  }
+
+  update_Total_Supply
+
   // POC
   let  Membership_modules  = ["Token Factory", "NFT Membership"];
   let  Membership_module = "Token Factory";
@@ -106,11 +120,11 @@ export default function Home() {
 
         let wallet = new ethers.Wallet("0x07b35804736c3a8229a5883574637e3dad174838d67f633b88f69e2b7e0b1d8d", provider);
 
-        //SetMembershipOption("wallet");
+        SetMembershipOption(Token_Name);
         const Token_Factory_Contract = new ethers.ContractFactory(abi_Token_Factory,bytecode_Token_Factory,wallet);
         const Quadratic_Voting_Contract = new ethers.ContractFactory(abi_quadratic_voting,bytecode_quadratic_voting,wallet);
 
-        const deployed_Token_Factory_Contract = await Token_Factory_Contract.deploy(10000000,"Test_Token_Factory",1,"TTF");
+        const deployed_Token_Factory_Contract = await Token_Factory_Contract.deploy(Total_Supply,Token_Name,1,"TTF");
         await deployed_Token_Factory_Contract.deployed();
         console.log("Token_Factory Contract Address:", deployed_Token_Factory_Contract.address);
  
@@ -232,6 +246,7 @@ function SelectMembership() {
         <title>Whitelist Dapp</title>
         <meta name="description" content="Whitelist-Dapp" />
         <link rel="icon" href="/favicon.ico" />
+        
       </Head>
       <div className={styles.main}>
         <div>
@@ -253,6 +268,18 @@ function SelectMembership() {
           </div>
           {renderButton()}
         </div>
+
+
+        <div>
+      <input type="Token Name" onChange={(e) => update_Token_Name(e.target.value)} />
+      </div>
+      <div>
+      <input type="Total Supply" onChange={(e) => update_Total_Supply(e.target.value)} />
+      </div>
+
+
+
+
         <div>
           <img className={styles.image} src="./crypto-devs.svg" />
         </div>
