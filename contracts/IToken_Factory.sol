@@ -9,5 +9,7 @@ interface IMembership_Abstraction {
   function transferFrom(address sender,address recipient,uint amount) external returns (bool);
   
   function transfer(address recipient, uint amount) external returns (bool);
+  
+  function balanceOf(address owner) external view returns (uint256);
 
 }

@@ -5,6 +5,7 @@ pragma solidity ^0.8.13;
 import "./IToken_Factory.sol";
 
 
+
 contract One_to_one_Voting {
 
     struct Proposal {
@@ -22,6 +23,8 @@ contract One_to_one_Voting {
         uint value;
         bool voted;
     }
+
+    uint private voteValue;
 	
     IMembership_Abstraction Membership_Abstraction;
 
@@ -32,8 +35,9 @@ contract One_to_one_Voting {
     event CreatedVoteEvent();
 	
 	
-    constructor (address Membership_Abstraction_contract) {
+    constructor (address Membership_Abstraction_contract, uint _voteValue) {
 		Membership_Abstraction = IMembership_Abstraction(Membership_Abstraction_contract);
+		voteValue=_voteValue;
     }
 
     function getProposal(uint proposal_id) public view returns (uint, uint, uint, address[] memory) {
@@ -50,11 +54,24 @@ contract One_to_one_Voting {
 		emit CreatedProposalEvent(ProposalCount);
         return true;
     }
+	
+	function Get_Voting_Power()public view returns(uint256){
+	return(Membership_Abstraction.votingPower(msg.sender));
+	}
 
-    function vote(uint proposal_id, uint voteValue) public returns (bool) {
+    function vote(uint proposal_id, uint8 positive_Vote) public returns (bool) {
 		require(Membership_Abstraction.votingPower(msg.sender)>= voteValue,"Not Enough Balance to Vote");
         Proposal storage proposal = proposals[proposal_id]; // Get the proposal
         proposal.votersAddress.push(msg.sender);
+		if (positive_Vote == 1) {
+		proposal.voteCountPos ++;
+		}
+		else if (positive_Vote == 2){
+		proposal.voteCountNeg ++;
+		}
+		else if (positive_Vote == 0){
+		proposal.voteCountAbs ++;
+		}
         emit CreatedVoteEvent();
         return true;
 

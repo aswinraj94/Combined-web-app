@@ -7,6 +7,8 @@ import { VOTING_CONTRACT_ADDRESS } from "../constants";
 import { MEMBERSHIP_CONTRACT_ADDRESS } from "../constants";
 import {abi as abi_Token_Factory } from "../artifacts/contracts/Token_Factory.sol/Token_Factory.json";
 import {abi as abi_quadratic_voting} from "../artifacts/contracts/QuadraticVoting_Simple.sol/QuadraticVoting_Simple.json";
+import {abi as abi_NFT_Marketplace } from "../artifacts/contracts/NFT_MarketPlace.sol/NFT_Marketplace.json";
+import {abi as abi_Voting} from "../artifacts/contracts/Voting.sol/One_to_one_Voting.json";
 //import '@nomiclabs/hardhat-ethers';
 import { ethers } from "ethers";
 //import { run } from "node:test";
@@ -14,6 +16,8 @@ import { ethers } from "ethers";
 //import {deploytokenfactory} from "../scripts/deploy_Token_Factory"
 import {bytecode as bytecode_Token_Factory} from "../artifacts/contracts/Token_Factory.sol/Token_Factory.json";
 import {bytecode as bytecode_quadratic_voting} from "../artifacts/contracts/QuadraticVoting_Simple.sol/QuadraticVoting_Simple.json";
+import {bytecode as bytecode_NFT_Marketplace } from "../artifacts/contracts/NFT_MarketPlace.sol/NFT_Marketplace.json";
+import {bytecode as bytecode_Voting} from "../artifacts/contracts/Voting.sol/One_to_one_Voting.json";
 //import { ContractFactory } from 'ethers'
 //const ethers = require('ethers');
 //const fs = require('fs');
@@ -45,7 +49,34 @@ export default function Home() {
     set_Total_Supply(text);
   }
 
-  update_Total_Supply
+
+  const [Token_Symbol,set_Token_Symbol]=useState("TKN");
+
+  function update_Token_Symbol(text) {
+    set_Token_Symbol(text);
+  }
+
+  
+  const [Decimal_Points,set_Decimal_Points]=useState(1);
+
+  function update_Decimal_Points(text) {
+    set_Decimal_Points(text);
+  }
+
+  const [Token_Type,set_Token_Type]=useState("ERC-20");
+
+  function update_Token_Type(text) {
+    set_Token_Type(text);
+  }
+
+  function getOption() {
+    let selectElement = document.querySelector('#select1');
+    let output = selectElement.value;
+    //console.log(selectElement.value);
+    update_Token_Type(output);
+    
+}
+  
 
   // POC
   let  Membership_modules  = ["Token Factory", "NFT Membership"];
@@ -104,8 +135,8 @@ export default function Home() {
       //require("dotenv").config({ path: "../.env" });
       //const { TOKEN_FACTORY_CONTRACT_ADDRESS } = require("../constants/index_membership.js");
       //SetMembershipOption("Non_Member");
- 
-      //if(Membership_module == "Token Factory"){
+      let wallet = new ethers.Wallet("0x07b35804736c3a8229a5883574637e3dad174838d67f633b88f69e2b7e0b1d8d", provider); 
+      if(Token_Type == "ERC-20"){
         //await run(npx hardhat run scripts/deploy.js --network goerli);
         //let val = deploytokenfactory();
         //const provider = ethers.getDefaultProvider();
@@ -118,25 +149,35 @@ export default function Home() {
         //const provider = new ethers.providers.JsonRpcProvider();
         //let provider = new ethers.getDefaultProvider();
 
-        let wallet = new ethers.Wallet("0x07b35804736c3a8229a5883574637e3dad174838d67f633b88f69e2b7e0b1d8d", provider);
 
-        SetMembershipOption(Token_Name);
+
+        //console.log(Token_Name);
         const Token_Factory_Contract = new ethers.ContractFactory(abi_Token_Factory,bytecode_Token_Factory,wallet);
-        const Quadratic_Voting_Contract = new ethers.ContractFactory(abi_quadratic_voting,bytecode_quadratic_voting,wallet);
 
-        const deployed_Token_Factory_Contract = await Token_Factory_Contract.deploy(Total_Supply,Token_Name,1,"TTF");
+        const deployed_Token_Factory_Contract = await Token_Factory_Contract.deploy(Total_Supply,Token_Name,Decimal_Points,Token_Symbol);
         await deployed_Token_Factory_Contract.deployed();
         console.log("Token_Factory Contract Address:", deployed_Token_Factory_Contract.address);
  
-        SetMembershipOption(deployed_Token_Factory_Contract.address);
+        //SetMembershipOption(deployed_Token_Factory_Contract.address);
 
+
+      }
+      else if (Token_Type == "ERC-721"){
+
+        const NFT_Marketplace_Contract = new ethers.ContractFactory(abi_NFT_Marketplace,bytecode_NFT_Marketplace,wallet);
+
+        const deployed_NFT_Marketplace_Contract = await NFT_Marketplace_Contract.deploy();
+        await deployed_NFT_Marketplace_Contract.deployed();
+        console.log("NFT_Marketplace Contract Address:", deployed_NFT_Marketplace_Contract.address);
+
+
+
+      }
+      if (Voting_module == "voting"){
         const deployed_Quadratic_Voting_Contract = await Quadratic_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
         await deployed_Quadratic_Voting_Contract.deployed();
         SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
         console.log("Qudratic voting Contract Address:", deployed_Quadratic_Voting_Contract.address);
-      //}
-      if (Voting_module == "Qudratic voting"){
-
       }
       
       const MembershipContract = new Contract(
@@ -218,6 +259,7 @@ useEffect(() => {
 
 
 function SelectMembership() {
+  console.log("Simply");
   var index=0;
   var Membership_module = Membership_modules[index];
   SetMembershipOption(Membership_modules);
@@ -246,8 +288,13 @@ function SelectMembership() {
         <title>Whitelist Dapp</title>
         <meta name="description" content="Whitelist-Dapp" />
         <link rel="icon" href="/favicon.ico" />
-        
-      </Head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"/>
+ 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous"/>
+​
+
+        </Head>
+
       <div className={styles.main}>
         <div>
           <h1 className={styles.title}>Welcome to Excelsior Labs</h1>
@@ -255,17 +302,25 @@ function SelectMembership() {
             Select the modules to deploy your smart contract
           </div>
 
-
+          <div>
+          <p> Select Token Standard
+        <select id="select1">
+            <option value="ERC-20">ERC-20</option>
+            <option value="ERC-721">ERC-721</option>
+        </select>
+    </p>
+    </div>
            <div>
-            <p>{MembershipOption}</p>
-              <button onClick={SelectMembership}>Select</button>
+            <p>{Token_Name}</p>
+              <button onClick={getOption}>Select</button>
            </div>
 
 
+           
 
-          <div className={styles.description}>
-            {numberOfWhitelisted} have already joined the Whitelist
-          </div>
+
+
+
           {renderButton()}
         </div>
 
@@ -279,15 +334,50 @@ function SelectMembership() {
 
 
 
+      <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Token Name</label>
+    <input onChange={(e) => update_Token_Name(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="Excelsior Labs"/>
+  </div>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Token Symbol</label>
+    <input onChange={(e) => update_Token_Symbol(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="EXL"/>
+  </div>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Total Supply</label>
+    <input onChange={(e) => update_Total_Supply(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1,000,000"/>
+  </div>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Decimal Points</label>
+    <input onChange={(e) => update_Decimal_Points(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="6"/>
+  </div>
 
+
+
+
+  <h3>Gnosis Safe</h3>
+​
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Multi-sig Address 1</label>
+    <input onChange={(e) => update_Token_Name(e.target.value) }type="email" class="form-control" id="exampleFormControlInput1" placeholder="0x5045F03ab00f57982a7E564B068814d80091f92d"/>
+  </div>
+​
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Multi-sig Address 2</label>
+    <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="0x5045F03ab00f57982a7E564B068814d80091f92d"/>
+  </div>
+​
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Multi-sig Address 3</label>
+    <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="0x5045F03ab00f57982a7E564B068814d80091f92d"/>
+  </div>
         <div>
           <img className={styles.image} src="./crypto-devs.svg" />
         </div>
       </div>
 
-      <footer className={styles.footer}>
-        Made with &#10084; by Crypto Devs
-      </footer>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+
+
     </div>
   );
 }
