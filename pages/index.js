@@ -69,12 +69,24 @@ export default function Home() {
     set_Token_Type(text);
   }
 
-  function getOption() {
+  function getTokenOption() {
     let selectElement = document.querySelector('#select1');
     let output = selectElement.value;
-    //console.log(selectElement.value);
     update_Token_Type(output);
     
+}
+
+const [Voting_Type,set_Voting_Type]=useState("Quadratic Voting");
+
+function update_Voting_Type(text) {
+  set_Voting_Type(text);
+}
+
+function getVotingOption() {
+  let selectElement = document.querySelector('#select2');
+  let output = selectElement.value;
+  update_Voting_Type(output);
+  
 }
   
 
@@ -108,8 +120,8 @@ export default function Home() {
     // If user is not connected to the Goerli network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
     if (chainId !== 5) {
-      window.alert("Change the network to Goerli");
-      throw new Error("Change network to Goerli");
+      window.alert("Change the network to goerli");
+      throw new Error("Change network to goerli");
     }
 
     if (needSigner) {
@@ -136,49 +148,62 @@ export default function Home() {
       //const { TOKEN_FACTORY_CONTRACT_ADDRESS } = require("../constants/index_membership.js");
       //SetMembershipOption("Non_Member");
       let wallet = new ethers.Wallet("0x07b35804736c3a8229a5883574637e3dad174838d67f633b88f69e2b7e0b1d8d", provider); 
+
+      //let deployed_Token_Factory_Contract;
+      //let deployed_NFT_Marketplace_Contract;
+
+      if (Token_Type == "ERC-721" &  Voting_Type == "Quadratic Voting") 
+      {
+        set_Token_Name("Invalid Configuration");
+      }
+      else{
       if(Token_Type == "ERC-20"){
-        //await run(npx hardhat run scripts/deploy.js --network goerli);
-        //let val = deploytokenfactory();
-        //const provider = ethers.getDefaultProvider();
-        //let httpProvider = new ethers.providers.JsonRpcProvider();
 
-        //let url = "https://goerli.infura.io/v3/a220f85f3fcd40eea9883dfcb4aa6236";
-        //let customHttpProvider = new ethers.providers.InfuraProvider(url);
-        //const provider = new ethers.providers.JsonRpcProvider('https://long-tame-pallet.ethereum-goerli.discover.quiknode.pro/8faecb4ee1439b89a204628838536c5d85079c31/');
-        //const provider = new ethers.providers.InfuraProvider('https://goerli.infura.io/v3/a220f85f3fcd40eea9883dfcb4aa6236');
-        //const provider = new ethers.providers.JsonRpcProvider();
-        //let provider = new ethers.getDefaultProvider();
+        var Token_Factory_Contract = new ethers.ContractFactory(abi_Token_Factory,bytecode_Token_Factory,wallet);
 
-
-
-        //console.log(Token_Name);
-        const Token_Factory_Contract = new ethers.ContractFactory(abi_Token_Factory,bytecode_Token_Factory,wallet);
-
-        const deployed_Token_Factory_Contract = await Token_Factory_Contract.deploy(Total_Supply,Token_Name,Decimal_Points,Token_Symbol);
+        var deployed_Token_Factory_Contract = await Token_Factory_Contract.deploy(Total_Supply,Token_Name,Decimal_Points,Token_Symbol);
         await deployed_Token_Factory_Contract.deployed();
         console.log("Token_Factory Contract Address:", deployed_Token_Factory_Contract.address);
- 
-        //SetMembershipOption(deployed_Token_Factory_Contract.address);
-
+        console.log("code flow through here");
 
       }
       else if (Token_Type == "ERC-721"){
 
-        const NFT_Marketplace_Contract = new ethers.ContractFactory(abi_NFT_Marketplace,bytecode_NFT_Marketplace,wallet);
+        var NFT_Marketplace_Contract = new ethers.ContractFactory(abi_NFT_Marketplace,bytecode_NFT_Marketplace,wallet);
 
-        const deployed_NFT_Marketplace_Contract = await NFT_Marketplace_Contract.deploy();
+        var deployed_NFT_Marketplace_Contract = await NFT_Marketplace_Contract.deploy();
         await deployed_NFT_Marketplace_Contract.deployed();
         console.log("NFT_Marketplace Contract Address:", deployed_NFT_Marketplace_Contract.address);
 
 
 
       }
-      if (Voting_module == "voting"){
-        const deployed_Quadratic_Voting_Contract = await Quadratic_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
+      if (Voting_Type == "Quadratic Voting"){
+
+        var Quadratic_Voting_Contract = new ethers.ContractFactory(abi_quadratic_voting,bytecode_quadratic_voting,wallet);
+
+        var deployed_Quadratic_Voting_Contract = await Quadratic_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
         await deployed_Quadratic_Voting_Contract.deployed();
-        SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
+        //SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
         console.log("Qudratic voting Contract Address:", deployed_Quadratic_Voting_Contract.address);
       }
+      else if(Voting_Type == "Gated voting"){
+
+        var Gated_Voting_Contract = new ethers.ContractFactory(abi_Voting,bytecode_Voting,wallet);
+
+        if (Token_Type == "ERC-20"){
+          var deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
+        }else if (Token_Type == "ERC-721"){
+          var deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_NFT_Marketplace_Contract.address,1);
+        }
+        
+
+
+        await deployed_Gated_Voting_Contract.deployed();
+        //SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
+        console.log("Gated voting Contract Address:", deployed_Gated_Voting_Contract.address);
+      }
+    }
       
       const MembershipContract = new Contract(
         deployed_Quadratic_Voting_Contract.address,
@@ -308,11 +333,18 @@ function SelectMembership() {
             <option value="ERC-20">ERC-20</option>
             <option value="ERC-721">ERC-721</option>
         </select>
+    </p></div>
+    <div>
+    <p> Select Voting Module
+        <select id="select2">
+            <option value="Gated voting">Gated voting</option>
+            <option value="Quadratic Voting">Quadratic Voting</option>
+        </select>
     </p>
     </div>
            <div>
             <p>{Token_Name}</p>
-              <button onClick={getOption}>Select</button>
+              <button onClick={getTokenOption}>Select</button>
            </div>
 
 

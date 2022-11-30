@@ -24,7 +24,7 @@ module.exports = {
     ],
   },
   networks: {
-    goerli: {
+    polygon: {
       url: QUICKNODE_HTTP_URL,
       accounts: [PRIVATE_KEY],
     },
