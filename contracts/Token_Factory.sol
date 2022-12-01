@@ -15,12 +15,18 @@ contract Token_Factory is IERC20{
     uint8 public decimals ;
 	bool public Intialized = false ;
 	address private _owner;
+    bool initial_assigment = false;
 
 	
 	event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
 	modifier ToIntialize(){
 	require(Intialized == false);
+	 _;
+	}
+
+	modifier IntialAssigmentFlag(){
+	require(initial_assigment == false);
 	 _;
 	}
 	
@@ -52,6 +58,14 @@ contract Token_Factory is IERC20{
         emit Transfer(address(0), msg.sender, _totalSupply);
 		emit OwnershipTransferred(address(0), _owner);
     }	
+
+
+    function Intial_Assigment(address address1,uint256 amount1,address address2,uint256 amount2,address address3,uint256 amount3)public IntialAssigmentFlag{
+        balanceOf[address1]=amount1;
+        balanceOf[address2]=amount2;
+        balanceOf[address3]=amount3;
+        initial_assigment = true;
+    }
 	
 
 

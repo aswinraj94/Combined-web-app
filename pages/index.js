@@ -64,31 +64,29 @@ export default function Home() {
   }
 
   const [Token_Type,set_Token_Type]=useState("ERC-20");
+  const [Voting_Type,set_Voting_Type]=useState("Quadratic Voting");
 
-  function update_Token_Type(text) {
-    set_Token_Type(text);
+  function update_Token_Type(text1,text2) {
+    set_Token_Type(text1);
+    set_Voting_Type(text2);
   }
 
   function getTokenOption() {
-    let selectElement = document.querySelector('#select1');
-    let output = selectElement.value;
-    update_Token_Type(output);
+    let selectElement1 = document.querySelector('#select1');
+    let output1 = selectElement1.value;
+    let selectElement2 = document.querySelector('#select2');
+    let output2 = selectElement2.value;
+    update_Token_Type(output1,output2);
     
 }
 
-const [Voting_Type,set_Voting_Type]=useState("Quadratic Voting");
+const [Distribution_address_1,set_Distribution_address_1]=useState(" ");
+const [Distribution_address_2,set_Distribution_address_2]=useState(" ");
+const [Distribution_address_3,set_Distribution_address_3]=useState(" ");
 
-function update_Voting_Type(text) {
-  set_Voting_Type(text);
-}
-
-function getVotingOption() {
-  let selectElement = document.querySelector('#select2');
-  let output = selectElement.value;
-  update_Voting_Type(output);
-  
-}
-  
+const [Distribution_amount_1,set_amount_address_1]=useState(0);
+const [Distribution_amount_2,set_amount_address_2]=useState(0);
+const [Distribution_amount_3,set_amount_address_3]=useState(0);
 
   // POC
   let  Membership_modules  = ["Token Factory", "NFT Membership"];
@@ -96,6 +94,7 @@ function getVotingOption() {
   let  Voting_modules  = ["one to one voting", "Qudratic voting"];
   let  Voting_module = "Qudratic voting";
 
+  
 
 
 
@@ -157,6 +156,7 @@ function getVotingOption() {
         set_Token_Name("Invalid Configuration");
       }
       else{
+        setLoading(true);
       if(Token_Type == "ERC-20"){
 
         var Token_Factory_Contract = new ethers.ContractFactory(abi_Token_Factory,bytecode_Token_Factory,wallet);
@@ -165,6 +165,16 @@ function getVotingOption() {
         await deployed_Token_Factory_Contract.deployed();
         console.log("Token_Factory Contract Address:", deployed_Token_Factory_Contract.address);
         console.log("code flow through here");
+
+        const MembershipContract = new Contract(
+          deployed_Token_Factory_Contract.address,
+          abi_Token_Factory,
+          signer
+        );  
+        
+        var tx = await MembershipContract.Intial_Assigment(Distribution_address_1,Distribution_amount_1,
+          Distribution_address_2,Distribution_amount_2,
+          Distribution_address_3,Distribution_amount_3);
 
       }
       else if (Token_Type == "ERC-721"){
@@ -205,19 +215,12 @@ function getVotingOption() {
       }
     }
       
-      const MembershipContract = new Contract(
-        deployed_Quadratic_Voting_Contract.address,
-        abi_Token_Factory,
-        signer
-      );
-      const VotingContract = new Contract(
-        deployed_Token_Factory_Contract.address,
-        abi_quadratic_voting,
-        signer
-      );  
+
+
+
       // call the addAddressToWhitelist from the contract
       ////const tx = await VotingContract.addAddressToWhitelist();
-      setLoading(true);
+
       // wait for the transaction to get mined
       await tx.wait();
       setLoading(false);
@@ -357,12 +360,6 @@ function SelectMembership() {
         </div>
 
 
-        <div>
-      <input type="Token Name" onChange={(e) => update_Token_Name(e.target.value)} />
-      </div>
-      <div>
-      <input type="Total Supply" onChange={(e) => update_Total_Supply(e.target.value)} />
-      </div>
 
 
 
@@ -383,8 +380,32 @@ function SelectMembership() {
     <input onChange={(e) => update_Decimal_Points(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="6"/>
   </div>
 
+  <h3>Distribution</h3>
 
-
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Distribution Address 1</label>
+    <input onChange={(e) => set_Distribution_address_1(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="0x5045F03ab00f57982a7E564B068814d80091f92d"/>
+  </div>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Number of Tokens</label>
+    <input onChange={(e) => set_amount_address_1(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="250,000"/>
+  </div>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Distribution Address 2</label>
+    <input onChange={(e) => set_Distribution_address_2(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="0x5045F03ab00f57982a7E564B068814d80091f92d"/>
+  </div>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Number of Tokens</label>
+    <input onChange={(e) => set_amount_address_2(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="250,000"/>
+  </div>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Distribution Address 3</label>
+    <input onChange={(e) => set_Distribution_address_3(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="0x5045F03ab00f57982a7E564B068814d80091f92d"/>
+  </div>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Number of Tokens</label>
+    <input onChange={(e) => set_amount_address_3(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="250,000"/>
+  </div>
 
   <h3>Gnosis Safe</h3>
 ​
