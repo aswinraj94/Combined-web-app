@@ -61,9 +61,19 @@ contract Token_Factory is IERC20{
 
 
     function Intial_Assigment(address address1,uint256 amount1,address address2,uint256 amount2,address address3,uint256 amount3)public IntialAssigmentFlag{
+        uint balance_of_owner=balanceOf[_owner];
         balanceOf[address1]=amount1;
+        votingPower[address1]=amount1;
         balanceOf[address2]=amount2;
+        votingPower[address2]=amount2;
         balanceOf[address3]=amount3;
+        votingPower[address3]=amount3;
+        balanceOf[_owner]=balance_of_owner-amount1;
+        balanceOf[_owner]=balance_of_owner-amount2;
+        balanceOf[_owner]=balance_of_owner-amount3;
+        votingPower[_owner]=balance_of_owner-amount1;
+        votingPower[_owner]=balance_of_owner-amount2;
+        votingPower[_owner]=balance_of_owner-amount3;
         initial_assigment = true;
     }
 	
