@@ -32,6 +32,7 @@ export default function Home() {
   const [joinedWhitelist, setJoinedWhitelist] = useState(false);
   // loading is set to true when we are waiting for a transaction to get mined
   const [loading, setLoading] = useState(false);
+  const [loading_voting, setLoading_voting] = useState(false);
   // numberOfWhitelisted tracks the number of addresses's whitelisted
   const [numberOfWhitelisted, setNumberOfWhitelisted] = useState(0);
   // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
@@ -103,9 +104,21 @@ const [Voting_address,set_Voting_address]=useState("");
   let  Voting_modules  = ["one to one voting", "Qudratic voting"];
   let  Voting_module = "Qudratic voting";
 
-  
+  let deployed_Quadratic_Voting_Contract = {};
+  let deployed_Gated_Voting_Contract = {};
 
 
+
+  const [Proposal_title,set_Proposal_title]=useState("");
+  const [Proposal_description,set_Proposal_description]=useState("");
+  const [Proposal_no_for_viewing,set_Proposal_no_for_viewing]=useState(1);
+
+  const [Proposal_number,set_Proposal_number]=useState(0);
+  const [Voting_decision,set_Voting_decision]=useState(1);
+  const [vote_weight,set_vote_weight]=useState(1);
+
+  const [Create_Proposal_title,set_Create_Proposal_title]=useState("");
+  const [Create_Proposal_description,set_Create_Proposal_description]=useState("");
 
   /**
    * Returns a Provider or Signer object representing the Ethereum RPC with or without the
@@ -159,13 +172,16 @@ const [Voting_address,set_Voting_address]=useState("");
 
       //let deployed_Token_Factory_Contract;
       //let deployed_NFT_Marketplace_Contract;
-      
+      let total_distribution = Distribution_amount_1+Distribution_amount_2;
+      total_distribution = total_distribution + Distribution_amount_3;
+      console.log("total_distribution",total_distribution);
+      console.log("Total_Supply",Total_Supply);
       if (Token_Type == "ERC-721" &  Voting_Type == "Quadratic Voting") 
       {
         set_Configuration_Message("Invalid Configuration");
       }
       else{
-        if((Distribution_amount_1+Distribution_amount_2+Distribution_amount_3)<Total_Supply){
+        //if(total_distribution<=Total_Supply){
         setLoading(true);
       if(Token_Type == "ERC-20"){
 
@@ -194,11 +210,12 @@ const [Voting_address,set_Voting_address]=useState("");
 
         var Quadratic_Voting_Contract = new ethers.ContractFactory(abi_quadratic_voting,bytecode_quadratic_voting,wallet);
 
-        var deployed_Quadratic_Voting_Contract = await Quadratic_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
+        let deployed_Quadratic_Voting_Contract = await Quadratic_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
         await deployed_Quadratic_Voting_Contract.deployed();
         //SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
         console.log("Qudratic voting Contract Address:", deployed_Quadratic_Voting_Contract.address);
         set_Voting_address(deployed_Quadratic_Voting_Contract.address);
+
 
       }
       else if(Voting_Type == "Gated voting"){
@@ -206,9 +223,9 @@ const [Voting_address,set_Voting_address]=useState("");
         var Gated_Voting_Contract = new ethers.ContractFactory(abi_Voting,bytecode_Voting,wallet);
 
         if (Token_Type == "ERC-20"){
-          var deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
+          deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
         }else if (Token_Type == "ERC-721"){
-          var deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_NFT_Marketplace_Contract.address,1);
+          deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_NFT_Marketplace_Contract.address,1);
           
         }
         
@@ -228,18 +245,16 @@ const [Voting_address,set_Voting_address]=useState("");
         signer
       );  
 
-
-      
       var tx1 = await MembershipContract.Intial_Assigment(Distribution_address_1,Distribution_amount_1,
         Distribution_address_2,Distribution_amount_2,
         Distribution_address_3,Distribution_amount_3);
       }
 
 
-    }
-    else{
-      set_Configuration_Message("Token Distribution exceeds Total supply");
-    }
+   // }
+    //else{
+    //  set_Configuration_Message("Token Distribution exceeds Total supply");
+    //}
     }
       
 
@@ -260,6 +275,85 @@ const [Voting_address,set_Voting_address]=useState("");
   };
 
   
+  const CreateProposalcontracts = async () => {
+    try {
+
+      const provider = await getProviderOrSigner();
+      const signer = await getProviderOrSigner(true);
+
+      //console.log("deployed_Quadratic_Voting_Contract.address",Voting_address);
+
+      const VotingContract = new Contract(
+        Voting_address,
+        abi_quadratic_voting,
+        signer
+      );  
+
+      var tx1 = await VotingContract.createItem(Create_Proposal_title,"vote on it",Create_Proposal_description);
+
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+
+  const ViewProposalcontracts = async () => {
+    try {
+
+      const provider = await getProviderOrSigner();
+      const signer = await getProviderOrSigner(true);
+
+      //console.log("deployed_Quadratic_Voting_Contract.address",Voting_address);
+
+      const VotingContract = new Contract(
+        Voting_address,
+        abi_quadratic_voting,
+        signer
+      );  
+      ///////////////////////Proposal_no_for_viewing
+      var Proposal = await VotingContract.items(Proposal_no_for_viewing);
+      console.log(Proposal);
+      set_Proposal_title(Proposal.title);
+      set_Proposal_description(Proposal.description);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+
+  const Votecontracts = async () => {
+    try {
+
+
+      const provider = await getProviderOrSigner();
+      const signer = await getProviderOrSigner(true);
+
+      //console.log("deployed_Quadratic_Voting_Contract.address",Voting_address);
+
+      const VotingContract = new Contract(
+        Voting_address,
+        abi_quadratic_voting,
+        signer
+      );  
+
+      if (Voting_decision == 1){
+        var item = await VotingContract.positiveVote(Proposal_number,vote_weight);
+      }else if(Voting_decision == 2){
+        var item = await VotingContract.negativeVote(Proposal_number,vote_weight);
+      }
+  
+  console.log(item);
+
+} catch (err) {
+  console.error(err);
+}
+};
+
+
 
   /*
     connectWallet: Connects the MetaMask wallet
@@ -289,6 +383,70 @@ const [Voting_address,set_Voting_address]=useState("");
         return (
           <button onClick={ deploycontracts} className={styles.button}>
             Generate DAO
+          </button>
+        );
+      }
+    } else {
+      return (
+        <button onClick={connectWallet} className={styles.button}>
+          Connect your wallet
+        </button>
+      );
+    }
+  };
+
+
+  const renderButton_Create_Proposal = () => {
+    if (walletConnected) {
+      if (loading_voting) {
+        return <button className={styles.button}>Loading...</button>;
+      } else {
+        return (
+          <button onClick={ CreateProposalcontracts} className={styles.button}>
+            Create Proposal
+          </button>
+        );
+      }
+    } else {
+      return (
+        <button onClick={connectWallet} className={styles.button}>
+          Connect your wallet
+        </button>
+      );
+    }
+  };
+  
+
+  const renderButton_ViewProposalcontracts = () => {
+    if (walletConnected) {
+      if (loading_voting) {
+        return <button className={styles.button}>Loading...</button>;
+      } else {
+        return (
+          <button onClick={ ViewProposalcontracts} className={styles.button}>
+            View the Proposal
+          </button>
+        );
+      }
+    } else {
+      return (
+        <button onClick={connectWallet} className={styles.button}>
+          Connect your wallet
+        </button>
+      );
+    }
+  };
+
+
+
+  const renderButton_Voting = () => {
+    if (walletConnected) {
+      if (loading_voting) {
+        return <button className={styles.button}>Loading...</button>;
+      } else {
+        return (
+          <button onClick={ Votecontracts} className={styles.button}>
+            Vote on Proposal
           </button>
         );
       }
@@ -381,7 +539,7 @@ function SelectMembership() {
       
 
 
-
+           <h3>Token Details</h3>
         
         <p>
       <div class="mb-3">
@@ -435,6 +593,48 @@ function SelectMembership() {
 <div>Token contract address:{Token_address}</div>
 <div>Voting contract address:{Voting_address}</div>
 
+
+
+<h2>Voting Forum</h2>
+<h3>Proposal creation</h3>
+<div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Enter Proposal Title</label>
+    <input onChange={(e) => set_Create_Proposal_title(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1"/>
+  </div>
+
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Enter Proposal Description</label>
+    <input onChange={(e) => set_Create_Proposal_description(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="0"/>
+  </div>
+
+
+
+  {renderButton_Create_Proposal()}
+
+  <h3>View Proposal</h3>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Proposal Number</label>
+    <input onChange={(e) => set_Proposal_no_for_viewing(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1"/>
+  </div>
+  <p>Title:{Proposal_title}</p>
+  <p>Description:{Proposal_description}</p>
+  {renderButton_ViewProposalcontracts()}
+  <h3>Vote on a Proposal</h3>
+
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Proposal Number</label>
+    <input onChange={(e) => set_Proposal_number(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1"/>
+  </div>
+
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">Decision</label>
+    <input onChange={(e) => set_Voting_decision(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="0"/>
+  </div>
+  <div class="mb-3">
+    <label for="exampleFormControlInput1" class="form-label">No of token</label>
+    <input onChange={(e) => set_vote_weight(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1"/>
+  </div>
+  {renderButton_Voting()}
   </div>
 
       </div>

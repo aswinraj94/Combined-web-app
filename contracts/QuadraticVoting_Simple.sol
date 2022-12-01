@@ -9,7 +9,7 @@ contract QuadraticVoting_Simple{
   struct Item {
     address payable owner;
     uint amount;
-    bytes32 title;
+    string title;
     string imageHash; // IPFS cid
     string description;
     mapping(address => uint) positiveVotes; // user => weight
@@ -57,7 +57,7 @@ contract QuadraticVoting_Simple{
     }
   }
 
-  function createItem(bytes32 title, string memory imageHash, string memory description) public {
+  function createItem(string memory title, string memory imageHash, string memory description) public {
     uint itemId = itemCount++;
     Item storage item = items[itemId];
     item.owner = payable(msg.sender);
@@ -70,7 +70,7 @@ contract QuadraticVoting_Simple{
   function positiveVote(uint itemId, uint weight) public payable {
     //uint256 VotingPower_;
     Item storage item = items[itemId];
-    require(msg.sender != item.owner,"Item Owner cannot Vote"); // owners cannot vote on their own items
+    //require(msg.sender != item.owner,"Item Owner cannot Vote"); // owners cannot vote on their own items
 	
     uint currWeight = item.positiveVotes[msg.sender];
     if (currWeight == weight) {
@@ -101,7 +101,7 @@ contract QuadraticVoting_Simple{
   function negativeVote(uint itemId, uint weight) public payable {
     //uint256 VotingPower_;
     Item storage item = items[itemId];
-    require(msg.sender != item.owner,"Item Owner cannot Vote");
+    //require(msg.sender != item.owner,"Item Owner cannot Vote");
 
     uint currWeight = item.negativeVotes[msg.sender];
     if (currWeight == weight) {
