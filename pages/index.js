@@ -11,6 +11,7 @@ import {abi as abi_NFT_Marketplace } from "../artifacts/contracts/NFT_MarketPlac
 import {abi as abi_Voting} from "../artifacts/contracts/Voting.sol/One_to_one_Voting.json";
 //import '@nomiclabs/hardhat-ethers';
 import { ethers } from "ethers";
+//import {web3} from "web3";
 //import { run } from "node:test";
 //import {deployquadraticvoting} from "../scripts/deploy_Quadratic_Voting"
 //import {deploytokenfactory} from "../scripts/deploy_Token_Factory"
@@ -138,11 +139,11 @@ const [Voting_address,set_Voting_address]=useState("");
     const provider = await web3ModalRef.current.connect();
     const web3Provider = new providers.Web3Provider(provider);
 
-    // If user is not connected to the Goerli network, let them know and throw an error
+    // If user is not connected to the polygon network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
-    if (chainId !== 5) {
-      window.alert("Change the network to goerli");
-      throw new Error("Change network to goerli");
+    if (chainId !== 137) {
+      window.alert("Change the network to polygon");
+      throw new Error("Change network to polygon");
     }
 
     if (needSigner) {
@@ -159,21 +160,10 @@ const [Voting_address,set_Voting_address]=useState("");
     try {
       //SetMembershipOption("Membership_modules");
       // We need a Signer here since this is a 'write' transaction.
-      const provider = await getProviderOrSigner();
+      //const provider = await getProviderOrSigner();
       const signer = await getProviderOrSigner(true);
-      // Create a new instance of the Contract with a Signer, which allows
-      // update methods
 
-
-      //require("dotenv").config({ path: "../.env" });
-      //const { TOKEN_FACTORY_CONTRACT_ADDRESS } = require("../constants/index_membership.js");
-      //SetMembershipOption("Non_Member");
-      let wallet = new ethers.Wallet("0x07b35804736c3a8229a5883574637e3dad174838d67f633b88f69e2b7e0b1d8d", provider); 
-
-      //let deployed_Token_Factory_Contract;
-      //let deployed_NFT_Marketplace_Contract;
-      let total_distribution = Distribution_amount_1+Distribution_amount_2;
-      total_distribution = total_distribution + Distribution_amount_3;
+      let total_distribution = Number(Distribution_amount_1)+Number(Distribution_amount_2)+ Number(Distribution_amount_3);
       console.log("total_distribution",total_distribution);
       console.log("Total_Supply",Total_Supply);
       if (Token_Type == "ERC-721" &  Voting_Type == "Quadratic Voting") 
@@ -181,96 +171,97 @@ const [Voting_address,set_Voting_address]=useState("");
         set_Configuration_Message("Invalid Configuration");
       }
       else{
-        //if(total_distribution<=Total_Supply){
-        setLoading(true);
-      if(Token_Type == "ERC-20"){
+      if(total_distribution<=Total_Supply){
+          setLoading(true);
+        if(Token_Type == "ERC-20"){
 
-        var Token_Factory_Contract = new ethers.ContractFactory(abi_Token_Factory,bytecode_Token_Factory,wallet);
 
-        var deployed_Token_Factory_Contract = await Token_Factory_Contract.deploy(Total_Supply,Token_Name,Decimal_Points,Token_Symbol);
-        await deployed_Token_Factory_Contract.deployed();
-        console.log("Token_Factory Contract Address:", deployed_Token_Factory_Contract.address);
-        set_Token_address(deployed_Token_Factory_Contract.address);
+          var factory = new ethers.ContractFactory(abi_Token_Factory, bytecode_Token_Factory, signer);
+          var deployed_Token_Factory_Contract = await factory.deploy(Total_Supply,Token_Name,Decimal_Points,Token_Symbol);
+          await deployed_Token_Factory_Contract.deployTransaction.wait();
+
+
+
+
+          console.log("Token_Factory Contract Address:", deployed_Token_Factory_Contract.address);
+          set_Token_address(deployed_Token_Factory_Contract.address);
 
  
 
-      }
-      else if (Token_Type == "ERC-721"){
-
-        var NFT_Marketplace_Contract = new ethers.ContractFactory(abi_NFT_Marketplace,bytecode_NFT_Marketplace,wallet);
-
-        var deployed_NFT_Marketplace_Contract = await NFT_Marketplace_Contract.deploy();
-        await deployed_NFT_Marketplace_Contract.deployed();
-        console.log("NFT_Marketplace Contract Address:", deployed_NFT_Marketplace_Contract.address);
-
-        set_Token_address(deployed_NFT_Marketplace_Contract.address);
-
-      }
-      if (Voting_Type == "Quadratic Voting"){
-
-        var Quadratic_Voting_Contract = new ethers.ContractFactory(abi_quadratic_voting,bytecode_quadratic_voting,wallet);
-
-        let deployed_Quadratic_Voting_Contract = await Quadratic_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
-        await deployed_Quadratic_Voting_Contract.deployed();
-        //SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
-        console.log("Qudratic voting Contract Address:", deployed_Quadratic_Voting_Contract.address);
-        set_Voting_address(deployed_Quadratic_Voting_Contract.address);
-
-
-      }
-      else if(Voting_Type == "Gated voting"){
-
-        var Gated_Voting_Contract = new ethers.ContractFactory(abi_Voting,bytecode_Voting,wallet);
-
-        if (Token_Type == "ERC-20"){
-          deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
-        }else if (Token_Type == "ERC-721"){
-          deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_NFT_Marketplace_Contract.address,1);
-          
         }
-        
+        else if (Token_Type == "ERC-721"){
+
+          var NFT_Marketplace_Contract = new ethers.ContractFactory(abi_NFT_Marketplace,bytecode_NFT_Marketplace,signer);
+
+          var deployed_NFT_Marketplace_Contract = await NFT_Marketplace_Contract.deploy();
+
+          await deployed_NFT_Marketplace_Contract.deployTransaction.wait();
+          console.log("NFT_Marketplace Contract Address:", deployed_NFT_Marketplace_Contract.address);
+
+          set_Token_address(deployed_NFT_Marketplace_Contract.address);
+
+        }
+        if (Voting_Type == "Quadratic Voting"){
+
+          var Quadratic_Voting_Contract = new ethers.ContractFactory(abi_quadratic_voting,bytecode_quadratic_voting,signer);
+
+          let deployed_Quadratic_Voting_Contract = await Quadratic_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
+          await deployed_Quadratic_Voting_Contract.deployTransaction.wait();
+          //SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
+          console.log("Qudratic voting Contract Address:", deployed_Quadratic_Voting_Contract.address);
+          set_Voting_address(deployed_Quadratic_Voting_Contract.address);
 
 
-        await deployed_Gated_Voting_Contract.deployed();
-        set_Voting_address(deployed_Gated_Voting_Contract.address);
-        //SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
-        console.log("Gated voting Contract Address:", deployed_Gated_Voting_Contract.address);
-      }
+        }
+        else if(Voting_Type == "Gated voting"){
+
+          var Gated_Voting_Contract = new ethers.ContractFactory(abi_Voting,bytecode_Voting,signer);
+
+          if (Token_Type == "ERC-20"){
+            deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
+          }else if (Token_Type == "ERC-721"){
+            deployed_Gated_Voting_Contract = await Gated_Voting_Contract.deploy(deployed_NFT_Marketplace_Contract.address,1);
+
+          }
 
 
-      if(Token_Type == "ERC-20"){
-      const MembershipContract = new Contract(
-        deployed_Token_Factory_Contract.address,
-        abi_Token_Factory,
-        signer
-      );  
 
-      var tx1 = await MembershipContract.Intial_Assigment(Distribution_address_1,Distribution_amount_1,
-        Distribution_address_2,Distribution_amount_2,
-        Distribution_address_3,Distribution_amount_3);
-      }
+          await deployed_Gated_Voting_Contract.deployTransaction.wait();
+          set_Voting_address(deployed_Gated_Voting_Contract.address);
+          //SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
+          console.log("Gated voting Contract Address:", deployed_Gated_Voting_Contract.address);
+        }
 
 
-   // }
-    //else{
-    //  set_Configuration_Message("Token Distribution exceeds Total supply");
-    //}
+        if(Token_Type == "ERC-20"){
+        const MembershipContract = new Contract(
+          deployed_Token_Factory_Contract.address,
+          abi_Token_Factory,
+          signer
+        );  
+
+        var tx1 = await MembershipContract.Intial_Assigment(Distribution_address_1,Distribution_amount_1,
+          Distribution_address_2,Distribution_amount_2,
+          Distribution_address_3,Distribution_amount_3);
+        }
+
+
+    }
+    else{
+      set_Configuration_Message("Token Distribution exceeds Total supply");
+    }
     }
       
 
 
 
-      // call the addAddressToWhitelist from the contract
-      ////const tx = await VotingContract.addAddressToWhitelist();
 
       // wait for the transaction to get mined
       //await tx.wait();
       setLoading(false);
-      // get the updated number of addresses in the whitelist
-      ////await getNumberOfWhitelisted();
-      ////setJoinedWhitelist(true);
     } catch (err) {
       console.error(err);
+      setLoading(false);
     }
   };
 
@@ -487,7 +478,7 @@ function SelectMembership() {
       // Assign the Web3Modal class to the reference object by setting it's `current` value
       // The `current` value is persisted throughout as long as this page is open
       web3ModalRef.current = new Web3Modal({
-        network: "goerli",
+        network: "polygon",
         providerOptions: {},
         disableInjectedProvider: false,
       });
