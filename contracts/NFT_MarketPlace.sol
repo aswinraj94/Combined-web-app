@@ -33,7 +33,7 @@ contract NFT_Marketplace is ERC721Enumerable{
 
 
 
-  constructor() ERC721("Crypto Devs", "CD"){
+  constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol){
 		_owner = payable (msg.sender);
     tokenIds=0;
   }

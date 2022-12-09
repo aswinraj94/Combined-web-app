@@ -193,7 +193,7 @@ const [Voting_address,set_Voting_address]=useState("");
 
           var NFT_Marketplace_Contract = new ethers.ContractFactory(abi_NFT_Marketplace,bytecode_NFT_Marketplace,signer);
 
-          var deployed_NFT_Marketplace_Contract = await NFT_Marketplace_Contract.deploy();
+          var deployed_NFT_Marketplace_Contract = await NFT_Marketplace_Contract.deploy(Token_Name,Token_Symbol);
 
           await deployed_NFT_Marketplace_Contract.deployTransaction.wait();
           console.log("NFT_Marketplace Contract Address:", deployed_NFT_Marketplace_Contract.address);
