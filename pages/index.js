@@ -25,6 +25,21 @@ import {bytecode as bytecode_Voting} from "../artifacts/contracts/Voting.sol/One
 //import {ethers} from "../scripts/deploy_Token_Factory"
 
 //const { ethers } = require("hardhat");
+
+//Gnosis Safe
+
+import Web3 from 'web3'
+import Web3Adapter from '@safe-global/safe-web3-lib'
+
+import { useSafeAppsSDK } from '@gnosis.pm/safe-apps-react-sdk';
+import SafeAppsSDK from '@gnosis.pm/safe-apps-sdk';
+
+import Safe, { SafeFactory, SafeAccountConfig } from '@safe-global/safe-core-sdk'
+
+import SingletonDeployment  from '@gnosis.pm/safe-deployments'
+import EthersAdapter from '@safe-global/safe-ethers-lib'
+
+import {QUICKNODE_HTTP_URL, PRIVATE_KEY} from '../.env'
  
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
@@ -121,6 +136,94 @@ const [Voting_address,set_Voting_address]=useState("");
   const [Create_Proposal_title,set_Create_Proposal_title]=useState("");
   const [Create_Proposal_description,set_Create_Proposal_description]=useState("");
 
+  //const { sdk, connected, safe } = useSafeAppsSDK();
+  const appsSdk = new SafeAppsSDK();
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+  const Create_Safe = async () => {
+    try {
+
+      //const safeSingleton = getSafeSingletonDeployment();
+  
+      const signer = await getProviderOrSigner(true);
+      const provider = await getProviderOrSigner();
+      //const provider = new Web3.providers.HttpProvider('http://localhost:3000')
+
+      //const web3 = new Web3(provider)
+      const safeOwner = '0x93CE1B3dE0B8E5d52c6cA09C90173F292aDD5e63'
+      
+
+      //const provider = new ethers.providers.JsonRpcProvider(signer)
+      //const deployerSigner = new ethers.Wallet("0x07b35804736c3a8229a5883574637e3dad174838d67f633b88f69e2b7e0b1d8d", signer)
+
+      // Create EthAdapter instance
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer
+      })
+
+      const safeFactory = await SafeFactory.create({ ethAdapter })
+
+      console.log("safeFactory before",safeFactory);
+
+      const safeAccountConfig = {
+        owners: ["0x93CE1B3dE0B8E5d52c6cA09C90173F292aDD5e63"],
+        threshold: 1
+      }
+
+      const safeDeploymentConfig = {
+        saltNonce: "999"
+      }
+
+      const predictedDeployAddress = await safeFactory.predictSafeAddress({
+        safeAccountConfig,
+        safeDeploymentConfig
+      })
+
+      console.log("safeFactory after",safeFactory); 
+
+      function callback(txHash) {
+        console.log('Transaction hash:', txHash)
+      }
+
+      const safe = await safeFactory.deploySafe({
+        safeAccountConfig,
+        safeDeploymentConfig,
+        callback
+      })
+
+      console.log('Deployed Safe:', safe.getAddress());
+
+/*       const ethAdapter = new Web3Adapter({
+        web3,
+        signerAddress: safeOwner
+      })
+
+      const safeFactory = await SafeFactory.create({ ethAdapter })
+
+      const owners = ['0x93CE1B3dE0B8E5d52c6cA09C90173F292aDD5e63', '0x0cf76E6710FCFA84319583ef4E94AdE1b555ecF5', '0x4A578c045A52608E0B3c3eF073f728FdA9ebB776']
+      const threshold = 2
+      const safeAccountConfig = {
+        owners,
+        threshold
+      }
+      
+      const safeSdk  = await safeFactory.deploySafe({ safeAccountConfig })
+
+      const newSafeAddress = safeSdk.getAddress()
+
+      console.log("newSafeAddress",newSafeAddress); */
+  
+  
+  } catch (err) {
+    console.error(err);
+  }
+  };
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   /**
    * Returns a Provider or Signer object representing the Ethereum RPC with or without the
    * signing capabilities of metamask attached
@@ -153,12 +256,33 @@ const [Voting_address,set_Voting_address]=useState("");
     return web3Provider;
   };
 
+  const getProviderOrSignerEtherJS = async (needSigner = false) => {
+    // Connect to Metamask
+    // Since we store `web3Modal` as a reference, we need to access the `current` value to get access to the underlying object
+    const provider = await web3ModalRef.current.connect();
+    const web3Provider = new providers.Web3Provider(provider);
+
+    // If user is not connected to the polygon network, let them know and throw an error
+    const { chainId } = await web3Provider.getNetwork();
+    if (chainId !== 137) {
+      window.alert("Change the network to polygon");
+      throw new Error("Change network to polygon");
+    }
+
+    if (needSigner) {
+      const signer = web3Provider.getSigner();
+      return signer;
+    }
+    return web3Provider;
+  };
+
+
   /**
    * addAddressToWhitelist: Adds the current connected address to the whitelist
    */
   const deploycontracts = async () => {
     try {
-      //SetMembershipOption("Membership_modules");
+
       // We need a Signer here since this is a 'write' transaction.
       //const provider = await getProviderOrSigner();
       const signer = await getProviderOrSigner(true);
@@ -372,7 +496,7 @@ const [Voting_address,set_Voting_address]=useState("");
         return <button className={styles.button}>Loading...</button>;
       } else {
         return (
-          <button onClick={ deploycontracts} className={styles.button}>
+          <button onClick={ Create_Safe} className={styles.button}>
             Generate DAO
           </button>
         );
