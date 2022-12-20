@@ -9,24 +9,14 @@ import {abi as abi_Token_Factory } from "../artifacts/contracts/Token_Factory.so
 import {abi as abi_quadratic_voting} from "../artifacts/contracts/QuadraticVoting_Simple.sol/QuadraticVoting_Simple.json";
 import {abi as abi_NFT_Marketplace } from "../artifacts/contracts/NFT_MarketPlace.sol/NFT_Marketplace.json";
 import {abi as abi_Voting} from "../artifacts/contracts/Voting.sol/One_to_one_Voting.json";
-//import '@nomiclabs/hardhat-ethers';
+
 import { ethers } from "ethers";
-//import {web3} from "web3";
-//import { run } from "node:test";
-//import {deployquadraticvoting} from "../scripts/deploy_Quadratic_Voting"
-//import {deploytokenfactory} from "../scripts/deploy_Token_Factory"
+
 import {bytecode as bytecode_Token_Factory} from "../artifacts/contracts/Token_Factory.sol/Token_Factory.json";
 import {bytecode as bytecode_quadratic_voting} from "../artifacts/contracts/QuadraticVoting_Simple.sol/QuadraticVoting_Simple.json";
 import {bytecode as bytecode_NFT_Marketplace } from "../artifacts/contracts/NFT_MarketPlace.sol/NFT_Marketplace.json";
 import {bytecode as bytecode_Voting} from "../artifacts/contracts/Voting.sol/One_to_one_Voting.json";
-//import { ContractFactory } from 'ethers'
-//const ethers = require('ethers');
-//const fs = require('fs');
-//import {ethers} from "../scripts/deploy_Token_Factory"
 
-//const { ethers } = require("hardhat");
-
-//Gnosis Safe
 
 import Web3 from 'web3'
 import Web3Adapter from '@safe-global/safe-web3-lib'
@@ -113,6 +103,7 @@ const [Distribution_amount_3,set_amount_address_3]=useState(0);
 
 const [Token_address,set_Token_address]=useState("");
 const [Voting_address,set_Voting_address]=useState("");
+const [Safe_address,set_Safe_address]=useState("");
 
   // POC
   let  Membership_modules  = ["Token Factory", "NFT Membership"];
@@ -140,24 +131,13 @@ const [Voting_address,set_Voting_address]=useState("");
   const appsSdk = new SafeAppsSDK();
 
 
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
   const Create_Safe = async () => {
     try {
 
-      //const safeSingleton = getSafeSingletonDeployment();
-  
+
       const signer = await getProviderOrSigner(true);
-      const provider = await getProviderOrSigner();
-      //const provider = new Web3.providers.HttpProvider('http://localhost:3000')
 
-      //const web3 = new Web3(provider)
-      const safeOwner = '0x93CE1B3dE0B8E5d52c6cA09C90173F292aDD5e63'
-      
-
-      //const provider = new ethers.providers.JsonRpcProvider(signer)
-      //const deployerSigner = new ethers.Wallet("0x07b35804736c3a8229a5883574637e3dad174838d67f633b88f69e2b7e0b1d8d", signer)
 
       // Create EthAdapter instance
       const ethAdapter = new EthersAdapter({
@@ -170,12 +150,12 @@ const [Voting_address,set_Voting_address]=useState("");
       console.log("safeFactory before",safeFactory);
 
       const safeAccountConfig = {
-        owners: ["0x93CE1B3dE0B8E5d52c6cA09C90173F292aDD5e63"],
-        threshold: 1
+        owners: [Distribution_address_1,Distribution_address_2,Distribution_address_3],
+        threshold: 2
       }
 
       const safeDeploymentConfig = {
-        saltNonce: "999"
+        saltNonce: "18"
       }
 
       const predictedDeployAddress = await safeFactory.predictSafeAddress({
@@ -183,7 +163,6 @@ const [Voting_address,set_Voting_address]=useState("");
         safeDeploymentConfig
       })
 
-      console.log("safeFactory after",safeFactory); 
 
       function callback(txHash) {
         console.log('Transaction hash:', txHash)
@@ -196,26 +175,8 @@ const [Voting_address,set_Voting_address]=useState("");
       })
 
       console.log('Deployed Safe:', safe.getAddress());
+      set_Safe_address(safe.getAddress());
 
-/*       const ethAdapter = new Web3Adapter({
-        web3,
-        signerAddress: safeOwner
-      })
-
-      const safeFactory = await SafeFactory.create({ ethAdapter })
-
-      const owners = ['0x93CE1B3dE0B8E5d52c6cA09C90173F292aDD5e63', '0x0cf76E6710FCFA84319583ef4E94AdE1b555ecF5', '0x4A578c045A52608E0B3c3eF073f728FdA9ebB776']
-      const threshold = 2
-      const safeAccountConfig = {
-        owners,
-        threshold
-      }
-      
-      const safeSdk  = await safeFactory.deploySafe({ safeAccountConfig })
-
-      const newSafeAddress = safeSdk.getAddress()
-
-      console.log("newSafeAddress",newSafeAddress); */
   
   
   } catch (err) {
@@ -284,7 +245,6 @@ const [Voting_address,set_Voting_address]=useState("");
     try {
 
       // We need a Signer here since this is a 'write' transaction.
-      //const provider = await getProviderOrSigner();
       const signer = await getProviderOrSigner(true);
 
       let total_distribution = Number(Distribution_amount_1)+Number(Distribution_amount_2)+ Number(Distribution_amount_3);
@@ -331,7 +291,6 @@ const [Voting_address,set_Voting_address]=useState("");
 
           let deployed_Quadratic_Voting_Contract = await Quadratic_Voting_Contract.deploy(deployed_Token_Factory_Contract.address,100);
           await deployed_Quadratic_Voting_Contract.deployTransaction.wait();
-          //SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
           console.log("Qudratic voting Contract Address:", deployed_Quadratic_Voting_Contract.address);
           set_Voting_address(deployed_Quadratic_Voting_Contract.address);
 
@@ -352,7 +311,6 @@ const [Voting_address,set_Voting_address]=useState("");
 
           await deployed_Gated_Voting_Contract.deployTransaction.wait();
           set_Voting_address(deployed_Gated_Voting_Contract.address);
-          //SetMembershipOption(deployed_Quadratic_Voting_Contract.address);
           console.log("Gated voting Contract Address:", deployed_Gated_Voting_Contract.address);
         }
 
@@ -380,8 +338,6 @@ const [Voting_address,set_Voting_address]=useState("");
 
 
 
-      // wait for the transaction to get mined
-      //await tx.wait();
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -396,7 +352,6 @@ const [Voting_address,set_Voting_address]=useState("");
       const provider = await getProviderOrSigner();
       const signer = await getProviderOrSigner(true);
 
-      //console.log("deployed_Quadratic_Voting_Contract.address",Voting_address);
 
       const VotingContract = new Contract(
         Voting_address,
@@ -419,8 +374,6 @@ const [Voting_address,set_Voting_address]=useState("");
 
       const provider = await getProviderOrSigner();
       const signer = await getProviderOrSigner(true);
-
-      //console.log("deployed_Quadratic_Voting_Contract.address",Voting_address);
 
       const VotingContract = new Contract(
         Voting_address,
@@ -446,8 +399,6 @@ const [Voting_address,set_Voting_address]=useState("");
 
       const provider = await getProviderOrSigner();
       const signer = await getProviderOrSigner(true);
-
-      //console.log("deployed_Quadratic_Voting_Contract.address",Voting_address);
 
       const VotingContract = new Contract(
         Voting_address,
@@ -480,8 +431,6 @@ const [Voting_address,set_Voting_address]=useState("");
       await getProviderOrSigner();
       setWalletConnected(true);
 
-      //checkIfAddressInWhitelist();
-      //getNumberOfWhitelisted();
     } catch (err) {
       console.error(err);
     }
@@ -496,7 +445,7 @@ const [Voting_address,set_Voting_address]=useState("");
         return <button className={styles.button}>Loading...</button>;
       } else {
         return (
-          <button onClick={ Create_Safe} className={styles.button}>
+          <button onClick={() => { Create_Safe(); deploycontracts();} } className={styles.button}>
             Generate DAO
           </button>
         );
@@ -574,24 +523,7 @@ const [Voting_address,set_Voting_address]=useState("");
     }
   };
 
-///Recommendation
 
-
-//let  Membership_modules : string[] = ["Token Factory", "NFT Membership"];
-const [MembershipOption, SetMembershipOption] = useState(["Token Factory"]);
-const [searchText, setSearchText] = useState("");
-
-useEffect(() => {
-
-}, [MembershipOption]);
-
-
-function SelectMembership() {
-  console.log("Simply");
-  var index=0;
-  var Membership_module = Membership_modules[index];
-  SetMembershipOption(Membership_modules);
-}
 
   // useEffects are used to react to changes in state of the website
   // The array at the end of function call represents what state changes will trigger this effect
@@ -707,6 +639,8 @@ function SelectMembership() {
 
 <div>Token contract address:{Token_address}</div>
 <div>Voting contract address:{Voting_address}</div>
+<div>Gnosis Safe contract address:{Safe_address}</div>
+
 
 
 

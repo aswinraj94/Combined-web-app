@@ -25,6 +25,7 @@
     "next": "13.0.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-frame-component": "^5.2.3",
     "solc": "^0.8.17",
     "web3": "^1.8.1",
     "web3modal": "^1.9.10"
