@@ -10,7 +10,13 @@
   },
   "dependencies": {
     "@expo/webpack-config": "^0.17.3",
+    "@gnosis.pm/safe-apps-react-sdk": "^4.6.2",
+    "@gnosis.pm/safe-apps-sdk": "^7.8.0",
+    "@gnosis.pm/safe-deployments": "^1.17.0",
     "@openzeppelin/contracts": "^4.8.0",
+    "@safe-global/safe-core-sdk": "^3.2.1",
+    "@safe-global/safe-ethers-lib": "^1.7.0",
+    "@safe-global/safe-web3-lib": "^1.7.1",
     "bootstrap": "^5.2.3",
     "dotenv": "^16.0.3",
     "eslint": "8.28.0",
@@ -19,6 +25,7 @@
     "next": "13.0.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-frame-component": "^5.2.3",
     "solc": "^0.8.17",
     "web3": "^1.8.1",
     "web3modal": "^1.9.10"
