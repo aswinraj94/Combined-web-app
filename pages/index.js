@@ -22,7 +22,9 @@ export default function App() {
 if (typeof(document) != 'undefined' && document != null){
   const rootElement = document.getElementById('root');
   const root = ReactDOM.createRoot(rootElement);
-  root.render(<App />);
+root.render(  <StrictMode>
+  <App />
+</StrictMode>,);
 
 
 }
