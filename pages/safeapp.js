@@ -1,48 +1,19 @@
 import React, {useState, useEffects} from 'react';
-
-const DynamicComponentWithNoSSR = <>Some JSX</>
-
-
+import styles from "../styles/Home.module.css";
+import Link from 'next/link'
 function App() {
 
-
-//   [a,setA] = useState();
-//   useEffect(() => {
-//       setA(<DynamicComponentWithNoSSR/>)
-//     });
-
-// // For a new iframe
-// const iframe = document.createElement("iframe");
-
-// iframe.onload = function() {
-//   console.log("The iframe is loaded");
-// };
-// iframe.onerror = function() {
-//   console.log("Something wrong happened");
-// };
-
-// iframe.src = "https://logrocket.com/";
-// document.body.appendChild(iframe);
-
-// // For an existing iframe
-// //const iframe = document.querySelector('.my-iframe');
-
-// iframe.onload = function() {
-//   console.log("The iframe is loaded");
-// }
-// iframe.onerror = function() {
-//   console.log("Something wrong happened");
-// }
-
-
-
-
-  //const myiframe = document.getElementById('myIframe')
-
-
   return (
+
+
+    
+    <div >
+        <ul>
+      <button className={styles.button}><Link href="/dashboard">Return to Dashboard</Link></button>
+  </ul>
     <div className="App">
       <iframe seamless src="https://app.safe.global/" width={2030} height={1000} allow="fullscreen" ></iframe>
+    </div>
     </div>
   );
 }

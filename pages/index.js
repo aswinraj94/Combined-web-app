@@ -1,10 +1,10 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
+import Link from 'next/link'
 import Web3Modal from "web3modal";
 import { providers, Contract } from "ethers";
 import { useEffect, useRef, useState } from "react";
-import { VOTING_CONTRACT_ADDRESS } from "../constants";
-import { MEMBERSHIP_CONTRACT_ADDRESS } from "../constants";
+
 import {abi as abi_Token_Factory } from "../artifacts/contracts/Token_Factory.sol/Token_Factory.json";
 import {abi as abi_quadratic_voting} from "../artifacts/contracts/QuadraticVoting_Simple.sol/QuadraticVoting_Simple.json";
 import {abi as abi_NFT_Marketplace } from "../artifacts/contracts/NFT_MarketPlace.sol/NFT_Marketplace.json";
@@ -18,55 +18,47 @@ import {bytecode as bytecode_NFT_Marketplace } from "../artifacts/contracts/NFT_
 import {bytecode as bytecode_Voting} from "../artifacts/contracts/Voting.sol/One_to_one_Voting.json";
 
 
-import Web3 from 'web3'
-import Web3Adapter from '@safe-global/safe-web3-lib'
-
-import { useSafeAppsSDK } from '@gnosis.pm/safe-apps-react-sdk';
-import SafeAppsSDK from '@gnosis.pm/safe-apps-sdk';
 
 import Safe, { SafeFactory, SafeAccountConfig } from '@safe-global/safe-core-sdk'
 
-import SingletonDeployment  from '@gnosis.pm/safe-deployments'
+
 import EthersAdapter from '@safe-global/safe-ethers-lib'
 
-import {QUICKNODE_HTTP_URL, PRIVATE_KEY} from '../.env'
  
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
   const [walletConnected, setWalletConnected] = useState(false);
-  // joinedWhitelist keeps track of whether the current metamask address has joined the Whitelist or not
-  const [joinedWhitelist, setJoinedWhitelist] = useState(false);
+
   // loading is set to true when we are waiting for a transaction to get mined
   const [loading, setLoading] = useState(false);
   const [loading_voting, setLoading_voting] = useState(false);
-  // numberOfWhitelisted tracks the number of addresses's whitelisted
-  const [numberOfWhitelisted, setNumberOfWhitelisted] = useState(0);
+
   // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
   const web3ModalRef = useRef();
 
   const [Configuration_Message,set_Configuration_Message]=useState(" ");
 
-  const [Token_Name,set_Token_Name]=useState("No Name");
+  const [Token_Name,set_Token_Name]=useState("");
 
   function update_Token_Name(text) {
     set_Token_Name(text);
   }
 
-  const [Total_Supply,set_Total_Supply]=useState(100);
+  const [Total_Supply,set_Total_Supply]=useState();
 
   function update_Total_Supply(text) {
     set_Total_Supply(text);
   }
 
 
-  const [Token_Symbol,set_Token_Symbol]=useState("TKN");
+  const [Token_Symbol,set_Token_Symbol]=useState("");
 
   function update_Token_Symbol(text) {
     set_Token_Symbol(text);
   }
 
   
-  const [Decimal_Points,set_Decimal_Points]=useState(1);
+  const [Decimal_Points,set_Decimal_Points]=useState();
 
   function update_Decimal_Points(text) {
     set_Decimal_Points(text);
@@ -106,10 +98,6 @@ const [Voting_address,set_Voting_address]=useState("");
 const [Safe_address,set_Safe_address]=useState("");
 
   // POC
-  let  Membership_modules  = ["Token Factory", "NFT Membership"];
-  let  Membership_module = "Token Factory";
-  let  Voting_modules  = ["one to one voting", "Qudratic voting"];
-  let  Voting_module = "Qudratic voting";
 
   let deployed_Quadratic_Voting_Contract = {};
   let deployed_Gated_Voting_Contract = {};
@@ -126,10 +114,6 @@ const [Safe_address,set_Safe_address]=useState("");
 
   const [Create_Proposal_title,set_Create_Proposal_title]=useState("");
   const [Create_Proposal_description,set_Create_Proposal_description]=useState("");
-
-  //const { sdk, connected, safe } = useSafeAppsSDK();
-  const appsSdk = new SafeAppsSDK();
-
 
 
   const Create_Safe = async () => {
@@ -155,7 +139,7 @@ const [Safe_address,set_Safe_address]=useState("");
       }
 
       const safeDeploymentConfig = {
-        saltNonce: "18"
+        saltNonce: "19"
       }
 
       const predictedDeployAddress = await safeFactory.predictSafeAddress({
@@ -217,27 +201,7 @@ const [Safe_address,set_Safe_address]=useState("");
     return web3Provider;
   };
 
-  const getProviderOrSignerEtherJS = async (needSigner = false) => {
-    // Connect to Metamask
-    // Since we store `web3Modal` as a reference, we need to access the `current` value to get access to the underlying object
-    const provider = await web3ModalRef.current.connect();
-    const web3Provider = new providers.Web3Provider(provider);
-
-    // If user is not connected to the polygon network, let them know and throw an error
-    const { chainId } = await web3Provider.getNetwork();
-    if (chainId !== 137) {
-      window.alert("Change the network to polygon");
-      throw new Error("Change network to polygon");
-    }
-
-    if (needSigner) {
-      const signer = web3Provider.getSigner();
-      return signer;
-    }
-    return web3Provider;
-  };
-
-
+ 
   /**
    * addAddressToWhitelist: Adds the current connected address to the whitelist
    */
@@ -346,78 +310,9 @@ const [Safe_address,set_Safe_address]=useState("");
   };
 
   
-  const CreateProposalcontracts = async () => {
-    try {
-
-      const provider = await getProviderOrSigner();
-      const signer = await getProviderOrSigner(true);
-
-
-      const VotingContract = new Contract(
-        Voting_address,
-        abi_quadratic_voting,
-        signer
-      );  
-
-      var tx1 = await VotingContract.createItem(Create_Proposal_title,"vote on it",Create_Proposal_description);
-
-
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
 
 
-  const ViewProposalcontracts = async () => {
-    try {
-
-      const provider = await getProviderOrSigner();
-      const signer = await getProviderOrSigner(true);
-
-      const VotingContract = new Contract(
-        Voting_address,
-        abi_quadratic_voting,
-        signer
-      );  
-      ///////////////////////Proposal_no_for_viewing
-      var Proposal = await VotingContract.items(Proposal_no_for_viewing);
-      console.log(Proposal);
-      set_Proposal_title(Proposal.title);
-      set_Proposal_description(Proposal.description);
-
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-
-
-  const Votecontracts = async () => {
-    try {
-
-
-      const provider = await getProviderOrSigner();
-      const signer = await getProviderOrSigner(true);
-
-      const VotingContract = new Contract(
-        Voting_address,
-        abi_quadratic_voting,
-        signer
-      );  
-
-      if (Voting_decision == 1){
-        var item = await VotingContract.positiveVote(Proposal_number,vote_weight);
-      }else if(Voting_decision == 2){
-        var item = await VotingContract.negativeVote(Proposal_number,vote_weight);
-      }
-  
-  console.log(item);
-
-} catch (err) {
-  console.error(err);
-}
-};
 
 
 
@@ -442,86 +337,23 @@ const [Safe_address,set_Safe_address]=useState("");
   const renderButton = () => {
     if (walletConnected) {
       if (loading) {
-        return <button className={styles.button}>Loading...</button>;
+        return <div >Loading...</div>;
       } else {
         return (
-          <button onClick={() => { Create_Safe(); deploycontracts();} } className={styles.button}>
+          <div onClick={() => { Create_Safe(); deploycontracts();} } >
             Generate DAO
-          </button>
+          </div>
         );
       }
     } else {
       return (
-        <button onClick={connectWallet} className={styles.button}>
+        <button onClick={connectWallet} >
           Connect your wallet
         </button>
       );
     }
   };
 
-
-  const renderButton_Create_Proposal = () => {
-    if (walletConnected) {
-      if (loading_voting) {
-        return <button className={styles.button}>Loading...</button>;
-      } else {
-        return (
-          <button onClick={ CreateProposalcontracts} className={styles.button}>
-            Create Proposal
-          </button>
-        );
-      }
-    } else {
-      return (
-        <button onClick={connectWallet} className={styles.button}>
-          Connect your wallet
-        </button>
-      );
-    }
-  };
-  
-
-  const renderButton_ViewProposalcontracts = () => {
-    if (walletConnected) {
-      if (loading_voting) {
-        return <button className={styles.button}>Loading...</button>;
-      } else {
-        return (
-          <button onClick={ ViewProposalcontracts} className={styles.button}>
-            View the Proposal
-          </button>
-        );
-      }
-    } else {
-      return (
-        <button onClick={connectWallet} className={styles.button}>
-          Connect your wallet
-        </button>
-      );
-    }
-  };
-
-
-
-  const renderButton_Voting = () => {
-    if (walletConnected) {
-      if (loading_voting) {
-        return <button className={styles.button}>Loading...</button>;
-      } else {
-        return (
-          <button onClick={ Votecontracts} className={styles.button}>
-            Vote on Proposal
-          </button>
-        );
-      }
-    } else {
-      return (
-        <button onClick={connectWallet} className={styles.button}>
-          Connect your wallet
-        </button>
-      );
-    }
-  };
 
 
 
@@ -545,8 +377,8 @@ const [Safe_address,set_Safe_address]=useState("");
   return (
     <div>
       <Head>
-        <title>Whitelist Dapp</title>
-        <meta name="description" content="Whitelist-Dapp" />
+        <title>Excelsior Labs</title>
+        <meta name="description" content="Excelsior-Labs" />
         <link rel="icon" href="/favicon.ico" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"/>
  
@@ -556,7 +388,11 @@ const [Safe_address,set_Safe_address]=useState("");
 
       <div className={styles.main}>
         <div>
-          <h1 className={styles.title}>Welcome to Excelsior Labs</h1>
+
+
+
+
+          
           <div className={styles.description}>
             Select the modules to deploy your smart contract
           </div>
@@ -635,56 +471,44 @@ const [Safe_address,set_Safe_address]=useState("");
   </p>
   
 
-  {renderButton()}
 
-<div>Token contract address:{Token_address}</div>
-<div>Voting contract address:{Voting_address}</div>
-<div>Gnosis Safe contract address:{Safe_address}</div>
+  <div class="container text-center">
+        <div class="row">
+        <div class="col-2">
+          
+          
+          <button type="button" class="btn btn-primary position-relative">
+        {renderButton()} <span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
+        </button>         
+          
+          
+          </div>
+        <div class="col-10"><h1><ul>
+
+
+        <button type="button" class="btn btn-primary position-relative">
+        <Link href="/dashboard">Dashboard</Link> <span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
+        </button>
+          
+          
+
+
+
+          </ul></h1></div>
+
+        </div>
+      </div>
+
+
+
+  
 
 
 
 
-<h2>Voting Forum</h2>
-<h3>Proposal creation</h3>
-<div class="mb-3">
-    <label for="exampleFormControlInput1" class="form-label">Enter Proposal Title</label>
-    <input onChange={(e) => set_Create_Proposal_title(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1"/>
+
   </div>
 
-  <div class="mb-3">
-    <label for="exampleFormControlInput1" class="form-label">Enter Proposal Description</label>
-    <input onChange={(e) => set_Create_Proposal_description(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="0"/>
-  </div>
-
-
-
-  {renderButton_Create_Proposal()}
-
-  <h3>View Proposal</h3>
-  <div class="mb-3">
-    <label for="exampleFormControlInput1" class="form-label">Proposal Number</label>
-    <input onChange={(e) => set_Proposal_no_for_viewing(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1"/>
-  </div>
-  <p>Title:{Proposal_title}</p>
-  <p>Description:{Proposal_description}</p>
-  {renderButton_ViewProposalcontracts()}
-  <h3>Vote on a Proposal</h3>
-
-  <div class="mb-3">
-    <label for="exampleFormControlInput1" class="form-label">Proposal Number</label>
-    <input onChange={(e) => set_Proposal_number(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1"/>
-  </div>
-
-  <div class="mb-3">
-    <label for="exampleFormControlInput1" class="form-label">Decision</label>
-    <input onChange={(e) => set_Voting_decision(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="0"/>
-  </div>
-  <div class="mb-3">
-    <label for="exampleFormControlInput1" class="form-label">No of token</label>
-    <input onChange={(e) => set_vote_weight(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1"/>
-  </div>
-  {renderButton_Voting()}
-  </div>
 
       </div>
 

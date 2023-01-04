@@ -21,6 +21,12 @@
   margin-left: 20%;
 }
 
+
+.image_icon {
+  width: 20%;
+  height: 10%;
+}
+
 .title {
   font-size: 2rem;
   margin: 2rem 0;
