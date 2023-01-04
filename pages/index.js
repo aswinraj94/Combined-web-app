@@ -21,10 +21,9 @@ import {bytecode as bytecode_Voting} from "../artifacts/contracts/Voting.sol/One
 
 import Safe, { SafeFactory, SafeAccountConfig } from '@safe-global/safe-core-sdk'
 
-
+import Router from 'next/router'
 import EthersAdapter from '@safe-global/safe-ethers-lib'
 
- 
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
   const [walletConnected, setWalletConnected] = useState(false);
@@ -93,27 +92,37 @@ const [Distribution_amount_1,set_amount_address_1]=useState(0);
 const [Distribution_amount_2,set_amount_address_2]=useState(0);
 const [Distribution_amount_3,set_amount_address_3]=useState(0);
 
-const [Token_address,set_Token_address]=useState("");
-const [Voting_address,set_Voting_address]=useState("");
-const [Safe_address,set_Safe_address]=useState("");
+let [Token_address,set_Token_address]=useState("");
+let [Voting_address,set_Voting_address]=useState("");
+let [Safe_address,set_Safe_address]=useState("");
 
-  // POC
+
 
   let deployed_Quadratic_Voting_Contract = {};
   let deployed_Gated_Voting_Contract = {};
 
 
 
-  const [Proposal_title,set_Proposal_title]=useState("");
-  const [Proposal_description,set_Proposal_description]=useState("");
-  const [Proposal_no_for_viewing,set_Proposal_no_for_viewing]=useState(1);
-
-  const [Proposal_number,set_Proposal_number]=useState(0);
-  const [Voting_decision,set_Voting_decision]=useState(1);
-  const [vote_weight,set_vote_weight]=useState(1);
-
-  const [Create_Proposal_title,set_Create_Proposal_title]=useState("");
-  const [Create_Proposal_description,set_Create_Proposal_description]=useState("");
+  let all_deployed = true;
+    function send_data(){
+  
+  
+    if (all_deployed == true){
+  
+      Router.push({
+        pathname: "/dashboard",
+        query: { safe_address_share: Safe_address,
+                 Token_address_share: Token_address,
+                 Voting_address_share: Voting_address,
+                 Token_Name_share: Token_Name,
+                 Total_Supply_share: Total_Supply,
+                 Token_Symbol_share: Token_Symbol,
+                 Decimal_Points_share: Decimal_Points
+                 }
+    })
+  }
+    
+     }
 
 
   const Create_Safe = async () => {
@@ -139,7 +148,7 @@ const [Safe_address,set_Safe_address]=useState("");
       }
 
       const safeDeploymentConfig = {
-        saltNonce: "19"
+        saltNonce: Date.now().toString()
       }
 
       const predictedDeployAddress = await safeFactory.predictSafeAddress({
@@ -158,10 +167,12 @@ const [Safe_address,set_Safe_address]=useState("");
         callback
       })
 
+      
+      await set_Safe_address(safe.getAddress());
       console.log('Deployed Safe:', safe.getAddress());
-      set_Safe_address(safe.getAddress());
+      console.log();
 
-  
+
   
   } catch (err) {
     console.error(err);
@@ -279,7 +290,7 @@ const [Safe_address,set_Safe_address]=useState("");
         }
 
 
-        if(Token_Type == "ERC-20"){
+        if(Token_Type == "ERC"){
         const MembershipContract = new Contract(
           deployed_Token_Factory_Contract.address,
           abi_Token_Factory,
@@ -332,7 +343,7 @@ const [Safe_address,set_Safe_address]=useState("");
   };
 
   /*
-    renderButton: Returns a button based on the state of the dapp
+    renderButton: Returns a button based on the state of the dapp  deploycontracts(); 
   */
   const renderButton = () => {
     if (walletConnected) {
@@ -340,7 +351,7 @@ const [Safe_address,set_Safe_address]=useState("");
         return <div >Loading...</div>;
       } else {
         return (
-          <div onClick={() => { Create_Safe(); deploycontracts();} } >
+          <div onClick={() => { Create_Safe(); } } >
             Generate DAO
           </div>
         );
@@ -487,7 +498,7 @@ const [Safe_address,set_Safe_address]=useState("");
 
 
         <button type="button" class="btn btn-primary position-relative">
-        <Link href="/dashboard">Dashboard</Link> <span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
+        <Link href="/dashboard" onClick={send_data}>Dashboard</Link> <span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
         </button>
           
           

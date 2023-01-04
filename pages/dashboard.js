@@ -4,24 +4,69 @@ import Link from 'next/link'
 import Web3Modal from "web3modal";
 import { providers, Contract } from "ethers";
 import { useEffect, useRef, useState } from "react";
-import {Token_Name,Total_Supply,Token_Symbol } from "./index.js"
-import {Decimal_Points,Token_address,Voting_address,Safe_address } from "./index.js"
-import {safe_add} from "./index.js"
+//import {Token_Name,Total_Supply,Token_Symbol } from "./index.js"
+//import {Decimal_Points,Token_address,Voting_address } from "./index.js"
 
-
+import { useRouter } from "next/router";
 
  
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
   const [walletConnected, setWalletConnected] = useState(false);
 
-
- 
-
   // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
   const web3ModalRef = useRef();
 
+  const router = useRouter();
 
+  let Token_Name = "";
+  let Total_Supply = "";
+  let Token_Symbol = "";
+  let Decimal_Points = "";
+
+  let Token_address = "";
+  let Voting_address = "";
+  let safe_address = "";
+
+
+
+  const {
+    query :{safe_address_share,
+      Token_address_share,
+      Voting_address_share,
+      Token_Name_share,
+      Total_Supply_share,
+      Token_Symbol_share,
+      Decimal_Points_share
+    }
+  } = router
+
+  const props = {
+    safe_address_share,
+    Token_address_share,
+    Voting_address_share,
+    Token_Name_share,
+    Total_Supply_share,
+    Token_Symbol_share,
+    Decimal_Points_share
+  }
+
+let intial_load = true;
+
+  async function store_values(){
+
+    
+  Token_Name = props.Token_Name_share;
+  Total_Supply = props.Total_Supply_share;
+  Token_Symbol = props.Token_Symbol_share;
+  Decimal_Points = props.Decimal_Points_share;
+
+  Token_address = props.Token_address_share;
+  Voting_address = props.Voting_address_share;
+  safe_address = props.safe_address_share;
+
+
+  };
 
 
 
@@ -46,6 +91,7 @@ export default function Home() {
     // If user is not connected to the polygon network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
     if (chainId !== 137) {
+      console.log(props.address);
       window.alert("Change the network to polygon");
       throw new Error("Change network to polygon");
     }
@@ -115,16 +161,16 @@ export default function Home() {
 
            <h3>Token Details</h3>
         
-           <div>Token Name:{Token_Name}</div>
-           <div>Token Total Supply:{Total_Supply}</div>
-           <div>Token Symbol:{Token_Symbol}</div>
-           <div>Token Decimal Points:{Decimal_Points}</div>
+           <div>Token Name:{props.Token_Name_share}</div>
+           <div>Token Total Supply:{props.Total_Supply_share}</div>
+           <div>Token Symbol:{props.Token_Symbol_share}</div>
+           <div>Token Decimal Points:{props.Decimal_Points_share}</div>
 
            <h3>Contract address</h3>
 
-<div>Token contract address:{Token_address}</div>
-<div>Voting contract address:{Voting_address}</div>
-<div>Gnosis Safe contract address:{safe_add}</div>
+<div>Token contract address:{props.Token_address_share}</div>
+<div>Voting contract address:{props.Voting_address_share}</div>
+<div>Gnosis Safe contract address:{props.safe_address_share}</div>
 
 
 
@@ -143,7 +189,7 @@ export default function Home() {
 
 
         <button type="button" class="btn btn-primary position-relative">
-        <Link href="/Vote">Voting Forum</Link><span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
+        <Link href="/Vote" onClick={store_values}>Voting Forum</Link><span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
         </button>
           
 
