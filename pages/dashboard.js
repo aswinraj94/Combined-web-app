@@ -173,8 +173,8 @@ let intial_load = true;
            <h3>Token Details</h3>
         
            <div>Token Name:{TokenName}</div>
-           <div>Token Total Supply:{TokenSymbol}</div>
-           <div>Token Symbol:{TotalSupply}</div>
+           <div>Token Total Supply:{TotalSupply}</div>
+           <div>Token Symbol:{TokenSymbol}</div>
            <div>Token Decimal Points:{DecimalPoint}</div>
 
            <h3>Contract address</h3>

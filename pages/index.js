@@ -297,12 +297,13 @@ let [Safe_address,set_Safe_address]=useState("");
           signer
         );  
 
+        console.log(signer.address);
 
         var treasury_amount =Number(TotalSupply)-Number(total_distribution);
         console.log(treasury_amount);
-        var tx1 = await MembershipContract.Intial_Assigment(Distribution_address_1,Distribution_amount_1,
-          Distribution_address_2,Distribution_amount_2,
-          Distribution_address_3,Distribution_amount_3,SafeAddress,treasury_amount);
+        var tx1 = await MembershipContract.transferFrom(Distribution_address_1,SafeAddress,treasury_amount);
+        var tx2 = await MembershipContract.transferFrom(Distribution_address_1,Distribution_address_2,Distribution_amount_2);
+        var tx3 = await MembershipContract.transferFrom(Distribution_address_1,Distribution_address_3,Distribution_amount_3);
         }
 
 

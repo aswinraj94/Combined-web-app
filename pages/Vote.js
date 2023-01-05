@@ -59,6 +59,8 @@ const [Safe_address,set_Safe_address]=useState("");
   const [Proposal_title,set_Proposal_title]=useState("");
   const [Proposal_description,set_Proposal_description]=useState("");
   const [Proposal_no_for_viewing,set_Proposal_no_for_viewing]=useState(1);
+  const [Proposal_Total_Positive,set_Proposal_Total_Positive]=useState(0);
+  const [Proposal_Total_Negative,set_Proposal_Total_Negative]=useState(0);
 
   const [Proposal_number,set_Proposal_number]=useState(0);
   const [Voting_decision,set_Voting_decision]=useState(1);
@@ -147,6 +149,8 @@ const [Safe_address,set_Safe_address]=useState("");
       console.log(Proposal);
       set_Proposal_title(Proposal.title);
       set_Proposal_description(Proposal.description);
+      set_Proposal_Total_Positive(Proposal.totalPositiveWeight);
+      set_Proposal_Total_Negative(Proposal.totalNegativeWeight);
 
     } catch (err) {
       console.error(err);
