@@ -101,7 +101,7 @@ let intial_load = true;
 
     // If user is not connected to the polygon network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
-    if (chainId !== 80001) {
+    if (chainId !== 137) {
       console.log(props.address);
       window.alert("Change the network to polygon");
       throw new Error("Change network to polygon");

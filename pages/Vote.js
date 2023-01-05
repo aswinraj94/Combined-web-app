@@ -90,7 +90,7 @@ const [Safe_address,set_Safe_address]=useState("");
 
     // If user is not connected to the polygon network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
-    if (chainId !== 80001) {
+    if (chainId !== 137) {
       window.alert("Change the network to polygon");
       throw new Error("Change network to polygon");
     }
