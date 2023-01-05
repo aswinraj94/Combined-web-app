@@ -24,7 +24,21 @@ import Safe, { SafeFactory, SafeAccountConfig } from '@safe-global/safe-core-sdk
 import Router from 'next/router'
 import EthersAdapter from '@safe-global/safe-ethers-lib'
 
+import { useSafeAdd,useVoting,useMembership } from '../lib/ThemeContext'
+import { useTokenName,useTokenSymbol,useTotalSupply,useDecimalPoint } from '../lib/ThemeContext'
+
 export default function Home() {
+  const { TokenName, setTokenName } = useTokenName()
+  const { TokenSymbol, setTokenSymbol} = useTokenSymbol()
+  const { TotalSupply, setTotalSupply} = useTotalSupply()
+  const { DecimalPoint, setDecimalPoint } = useDecimalPoint()
+
+  const { SafeAdd, setSafeAdd } = useSafeAdd()
+  const { Voting, setVoting } = useVoting()
+  const { Membership , setMembership  } = useMembership()
+
+  let SafeAddress ="0xdefault"
+
   // walletConnected keep track of whether the user's wallet is connected or not
   const [walletConnected, setWalletConnected] = useState(false);
 
@@ -103,26 +117,7 @@ let [Safe_address,set_Safe_address]=useState("");
 
 
 
-  let all_deployed = true;
-    function send_data(){
-  
-  
-    if (all_deployed == true){
-  
-      Router.push({
-        pathname: "/dashboard",
-        query: { safe_address_share: Safe_address,
-                 Token_address_share: Token_address,
-                 Voting_address_share: Voting_address,
-                 Token_Name_share: Token_Name,
-                 Total_Supply_share: Total_Supply,
-                 Token_Symbol_share: Token_Symbol,
-                 Decimal_Points_share: Decimal_Points
-                 }
-    })
-  }
-    
-     }
+
 
 
   const Create_Safe = async () => {
@@ -167,10 +162,11 @@ let [Safe_address,set_Safe_address]=useState("");
         callback
       })
 
-      
+      await setSafeAdd(safe.getAddress());
+      SafeAddress=safe.getAddress();
+
       await set_Safe_address(safe.getAddress());
       console.log('Deployed Safe:', safe.getAddress());
-      console.log();
 
 
   
@@ -200,7 +196,7 @@ let [Safe_address,set_Safe_address]=useState("");
 
     // If user is not connected to the polygon network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
-    if (chainId !== 137) {
+    if (chainId !== 80001) {
       window.alert("Change the network to polygon");
       throw new Error("Change network to polygon");
     }
@@ -224,19 +220,19 @@ let [Safe_address,set_Safe_address]=useState("");
 
       let total_distribution = Number(Distribution_amount_1)+Number(Distribution_amount_2)+ Number(Distribution_amount_3);
       console.log("total_distribution",total_distribution);
-      console.log("Total_Supply",Total_Supply);
+      console.log("TotalSupply",TotalSupply);
       if (Token_Type == "ERC-721" &  Voting_Type == "Quadratic Voting") 
       {
         set_Configuration_Message("Invalid Configuration");
       }
       else{
-      if(total_distribution<=Total_Supply){
+      if(total_distribution<=TotalSupply){
           setLoading(true);
         if(Token_Type == "ERC-20"){
 
 
           var factory = new ethers.ContractFactory(abi_Token_Factory, bytecode_Token_Factory, signer);
-          var deployed_Token_Factory_Contract = await factory.deploy(Total_Supply,Token_Name,Decimal_Points,Token_Symbol);
+          var deployed_Token_Factory_Contract = await factory.deploy(TotalSupply,TokenName,DecimalPoint,TokenSymbol);
           await deployed_Token_Factory_Contract.deployTransaction.wait();
 
 
@@ -244,6 +240,7 @@ let [Safe_address,set_Safe_address]=useState("");
 
           console.log("Token_Factory Contract Address:", deployed_Token_Factory_Contract.address);
           set_Token_address(deployed_Token_Factory_Contract.address);
+          setMembership(deployed_Token_Factory_Contract.address);
 
  
 
@@ -252,12 +249,13 @@ let [Safe_address,set_Safe_address]=useState("");
 
           var NFT_Marketplace_Contract = new ethers.ContractFactory(abi_NFT_Marketplace,bytecode_NFT_Marketplace,signer);
 
-          var deployed_NFT_Marketplace_Contract = await NFT_Marketplace_Contract.deploy(Token_Name,Token_Symbol);
+          var deployed_NFT_Marketplace_Contract = await NFT_Marketplace_Contract.deploy(TokenName,TokenSymbol);
 
           await deployed_NFT_Marketplace_Contract.deployTransaction.wait();
           console.log("NFT_Marketplace Contract Address:", deployed_NFT_Marketplace_Contract.address);
 
           set_Token_address(deployed_NFT_Marketplace_Contract.address);
+          setMembership(deployed_NFT_Marketplace_Contract.address);
 
         }
         if (Voting_Type == "Quadratic Voting"){
@@ -268,6 +266,7 @@ let [Safe_address,set_Safe_address]=useState("");
           await deployed_Quadratic_Voting_Contract.deployTransaction.wait();
           console.log("Qudratic voting Contract Address:", deployed_Quadratic_Voting_Contract.address);
           set_Voting_address(deployed_Quadratic_Voting_Contract.address);
+          setVoting(deployed_Quadratic_Voting_Contract.address);
 
 
         }
@@ -286,20 +285,24 @@ let [Safe_address,set_Safe_address]=useState("");
 
           await deployed_Gated_Voting_Contract.deployTransaction.wait();
           set_Voting_address(deployed_Gated_Voting_Contract.address);
+          setVoting(deployed_Gated_Voting_Contract.address);
           console.log("Gated voting Contract Address:", deployed_Gated_Voting_Contract.address);
         }
 
 
-        if(Token_Type == "ERC"){
+        if(Token_Type == "ERC-20"){
         const MembershipContract = new Contract(
           deployed_Token_Factory_Contract.address,
           abi_Token_Factory,
           signer
         );  
 
+
+        var treasury_amount =Number(TotalSupply)-Number(total_distribution);
+        console.log(treasury_amount);
         var tx1 = await MembershipContract.Intial_Assigment(Distribution_address_1,Distribution_amount_1,
           Distribution_address_2,Distribution_amount_2,
-          Distribution_address_3,Distribution_amount_3);
+          Distribution_address_3,Distribution_amount_3,SafeAddress,treasury_amount);
         }
 
 
@@ -343,7 +346,7 @@ let [Safe_address,set_Safe_address]=useState("");
   };
 
   /*
-    renderButton: Returns a button based on the state of the dapp  deploycontracts(); 
+    renderButton: Returns a button based on the state of the dapp   
   */
   const renderButton = () => {
     if (walletConnected) {
@@ -351,7 +354,7 @@ let [Safe_address,set_Safe_address]=useState("");
         return <div >Loading...</div>;
       } else {
         return (
-          <div onClick={() => { Create_Safe(); } } >
+          <div onClick={() => { Create_Safe(); deploycontracts();} } >
             Generate DAO
           </div>
         );
@@ -438,19 +441,19 @@ let [Safe_address,set_Safe_address]=useState("");
         <p>
       <div class="mb-3">
        <label for="exampleFormControlInput1" class="form-label">Token Name</label>
-      <input onChange={(e) => update_Token_Name(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="Excelsior Labs"/>
+      <input onChange={(e) => setTokenName(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="Excelsior Labs"/>
      </div>
   <div class="mb-3">
     <label for="exampleFormControlInput1" class="form-label">Token Symbol</label>
-    <input onChange={(e) => update_Token_Symbol(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="EXL"/>
+    <input onChange={(e) => setTokenSymbol(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="EXL"/>
   </div>
   <div class="mb-3">
     <label for="exampleFormControlInput1" class="form-label">Total Supply</label>
-    <input onChange={(e) => update_Total_Supply(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1,000,000"/>
+    <input onChange={(e) => setTotalSupply(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="1,000,000"/>
   </div>
   <div class="mb-3">
     <label for="exampleFormControlInput1" class="form-label">Decimal Points</label>
-    <input onChange={(e) => update_Decimal_Points(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="6"/> 
+    <input onChange={(e) => setDecimalPoint(e.target.value)} type="email" class="form-control" id="exampleFormControlInput1" placeholder="6"/> 
   </div>
   
   <h3>Distribution</h3>
@@ -498,7 +501,7 @@ let [Safe_address,set_Safe_address]=useState("");
 
 
         <button type="button" class="btn btn-primary position-relative">
-        <Link href="/dashboard" onClick={send_data}>Dashboard</Link> <span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
+        <Link href="/dashboard" >Dashboard</Link> <span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
         </button>
           
           

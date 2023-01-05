@@ -23,7 +23,7 @@ import Safe, { SafeFactory, SafeAccountConfig } from '@safe-global/safe-core-sdk
 
 
 import EthersAdapter from '@safe-global/safe-ethers-lib'
-
+import { useVoting } from '../lib/ThemeContext'
  
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
@@ -43,18 +43,12 @@ export default function Home() {
 
 
 
-const [Distribution_address_1,set_Distribution_address_1]=useState(" ");
-const [Distribution_address_2,set_Distribution_address_2]=useState(" ");
-const [Distribution_address_3,set_Distribution_address_3]=useState(" ");
-
-const [Distribution_amount_1,set_amount_address_1]=useState(0);
-const [Distribution_amount_2,set_amount_address_2]=useState(0);
-const [Distribution_amount_3,set_amount_address_3]=useState(0);
-
+  const { Voting, setVoting } = useVoting()
+/*
 const [Token_address,set_Token_address]=useState("");
 const [Voting_address,set_Voting_address]=useState("");
 const [Safe_address,set_Safe_address]=useState("");
-
+*/
   // POC
 
   let deployed_Quadratic_Voting_Contract = {};
@@ -96,7 +90,7 @@ const [Safe_address,set_Safe_address]=useState("");
 
     // If user is not connected to the polygon network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
-    if (chainId !== 137) {
+    if (chainId !== 80001) {
       window.alert("Change the network to polygon");
       throw new Error("Change network to polygon");
     }
@@ -122,7 +116,7 @@ const [Safe_address,set_Safe_address]=useState("");
 
 
       const VotingContract = new Contract(
-        Voting_address,
+        Voting,
         abi_quadratic_voting,
         signer
       );  
@@ -144,7 +138,7 @@ const [Safe_address,set_Safe_address]=useState("");
       const signer = await getProviderOrSigner(true);
 
       const VotingContract = new Contract(
-        Voting_address,
+        Voting,
         abi_quadratic_voting,
         signer
       );  
@@ -169,7 +163,7 @@ const [Safe_address,set_Safe_address]=useState("");
       const signer = await getProviderOrSigner(true);
 
       const VotingContract = new Contract(
-        Voting_address,
+        Voting,
         abi_quadratic_voting,
         signer
       );  

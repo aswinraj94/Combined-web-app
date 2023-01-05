@@ -9,8 +9,19 @@ import { useEffect, useRef, useState } from "react";
 
 import { useRouter } from "next/router";
 
+import { useSafeAdd,useVoting,useMembership } from '../lib/ThemeContext'
+import { useTokenName,useTokenSymbol,useTotalSupply,useDecimalPoint } from '../lib/ThemeContext'
  
 export default function Home() {
+
+  const { TokenName, setTokenName } = useTokenName()
+  const { TokenSymbol, setTokenSymbol} = useTokenSymbol()
+  const { TotalSupply, setTotalSupply} = useTotalSupply()
+  const { DecimalPoint, setDecimalPoint } = useDecimalPoint()
+
+  const { SafeAdd, setSafeAdd } = useSafeAdd()
+  const { Voting, setVoting } = useVoting()
+  const { Membership , setMembership  } = useMembership()
   // walletConnected keep track of whether the user's wallet is connected or not
   const [walletConnected, setWalletConnected] = useState(false);
 
@@ -90,7 +101,7 @@ let intial_load = true;
 
     // If user is not connected to the polygon network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
-    if (chainId !== 137) {
+    if (chainId !== 80001) {
       console.log(props.address);
       window.alert("Change the network to polygon");
       throw new Error("Change network to polygon");
@@ -161,16 +172,16 @@ let intial_load = true;
 
            <h3>Token Details</h3>
         
-           <div>Token Name:{props.Token_Name_share}</div>
-           <div>Token Total Supply:{props.Total_Supply_share}</div>
-           <div>Token Symbol:{props.Token_Symbol_share}</div>
-           <div>Token Decimal Points:{props.Decimal_Points_share}</div>
+           <div>Token Name:{TokenName}</div>
+           <div>Token Total Supply:{TokenSymbol}</div>
+           <div>Token Symbol:{TotalSupply}</div>
+           <div>Token Decimal Points:{DecimalPoint}</div>
 
            <h3>Contract address</h3>
 
-<div>Token contract address:{props.Token_address_share}</div>
-<div>Voting contract address:{props.Voting_address_share}</div>
-<div>Gnosis Safe contract address:{props.safe_address_share}</div>
+<div>Token contract address:{Membership}</div>
+<div>Voting contract address:{Voting}</div>
+<div>Gnosis Safe contract address:{SafeAdd}</div>
 
 
 
