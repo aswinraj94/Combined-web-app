@@ -351,12 +351,12 @@ let [Safe_address,set_Safe_address]=useState("");
   const renderButton = () => {
     if (walletConnected) {
       if (loading) {
-        return <div >Loading...</div>;
+        return <button className={styles.button} >Loading...</button>;
       } else {
         return (
-          <div onClick={() => { Create_Safe(); deploycontracts();} } >
+          <button className={styles.button} onClick={() => {  deploycontracts();} } >
             Generate DAO
-          </div>
+          </button>
         );
       }
     } else {
@@ -491,17 +491,17 @@ let [Safe_address,set_Safe_address]=useState("");
         <div class="col-2">
           
           
-          <button type="button" class="btn btn-primary position-relative">
-        {renderButton()} <span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
-        </button>         
+          
+        {renderButton()} 
+      
           
           
           </div>
         <div class="col-10"><h1><ul>
 
 
-        <button type="button" class="btn btn-primary position-relative">
-        <Link href="/dashboard" >Dashboard</Link> <span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
+        <button className={styles.button}>
+        <Link href="/dashboard" >Dashboard</Link> 
         </button>
           
           

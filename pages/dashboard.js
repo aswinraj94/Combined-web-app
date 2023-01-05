@@ -187,20 +187,20 @@ let intial_load = true;
 
 <div class="container text-center">
         <div class="row">
-        <div class="col-2">
+        <div class="col order-5">
           
           
-          <button type="button" class="btn btn-primary position-relative">
-          <Link href="/safeapp">  Safe App</Link> <span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
+        <button className={styles.button}>
+          <Link href="/safeapp">Safe App</Link> 
         </button>         
           
           
           </div>
-        <div class="col-10"><h1><ul>
+        <div class="col order-5"><h1><ul>
 
 
-        <button type="button" class="btn btn-primary position-relative">
-        <Link href="/Vote" onClick={store_values}>Voting Forum</Link><span class="position-absolute top-0 start-100 translate-middle  border-light  p-2"><span class="visually-hidden">unread messages</span></span>
+        <button className={styles.button}>
+        <Link href="/Vote" onClick={store_values}>Voting Forum</Link>
         </button>
           
 
