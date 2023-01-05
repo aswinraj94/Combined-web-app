@@ -354,7 +354,7 @@ let [Safe_address,set_Safe_address]=useState("");
         return <button className={styles.button} >Loading...</button>;
       } else {
         return (
-          <button className={styles.button} onClick={() => {  deploycontracts();} } >
+          <button className={styles.button} onClick={() => { Create_Safe(); deploycontracts();} } >
             Generate DAO
           </button>
         );
